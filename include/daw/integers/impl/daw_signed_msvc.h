@@ -3,20 +3,21 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
-// Official repository: https://github.com/beached/header_libraries
+// Official repository: https://github.com/beached/daw_integer
 //
 
 #pragma once
 
 #if defined( _MSC_VER ) and not defined( __clang__ )
 
-#include "daw/daw_arith_traits.h"
-#include "daw/daw_attributes.h"
-#include "daw/daw_consteval.h"
-#include "daw/daw_cpp_feature_check.h"
-#include "daw/daw_is_constant_evaluated.h"
-#include "daw/daw_likely.h"
 #include "daw_signed_error_handling.h"
+
+#include <daw/daw_arith_traits.h>
+#include <daw/daw_attributes.h>
+#include <daw/daw_consteval.h>
+#include <daw/daw_cpp_feature_check.h>
+#include <daw/daw_is_constant_evaluated.h>
+#include <daw/daw_likely.h>
 
 #include <algorithm>
 #include <climits>

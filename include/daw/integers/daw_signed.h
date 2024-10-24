@@ -3,15 +3,15 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
-// Official repository: https://github.com/beached/header_libraries
+// Official repository: https://github.com/beached/daw_integer
 //
 
 #pragma once
 
-
 #include "impl/daw_signed_error_handling.h"
 #include "impl/daw_signed_impl.h"
 
+#include <daw/daw_arith_traits.h>
 #include <daw/daw_attributes.h>
 #include <daw/daw_consteval.h>
 #include <daw/daw_cpp_feature_check.h>
@@ -20,7 +20,6 @@
 #include <daw/daw_int_cmp.h>
 #include <daw/daw_likely.h>
 #include <daw/traits/daw_traits_is_one_of.h>
-#include <daw/daw_arith_traits.h>
 
 #include <algorithm>
 #include <array>
@@ -66,12 +65,11 @@ namespace daw::integers {
 
 		template<typename T>
 		inline constexpr bool is_signed_integral_v<
-		  T,
-		  std::enable_if_t<daw::is_integral_v<T> and daw::is_signed_v<T>>> = true;
+		  T, std::enable_if_t<daw::is_integral_v<T> and daw::is_signed_v<T>>> =
+		  true;
 
 		template<
-		  typename Lhs,
-		  typename Rhs,
+		  typename Lhs, typename Rhs,
 		  std::enable_if_t<is_signed_integral_v<Lhs> and is_signed_integral_v<Rhs>,
 		                   std::nullptr_t> = nullptr>
 		using int_result_t =
@@ -86,9 +84,11 @@ namespace daw::integers {
 	using i64 = signed_integer<64>;
 
 	template<std::size_t Bits>
-	struct [[DAW_PREF_NAME( i8 ),
-	         DAW_PREF_NAME( i16 ),
-	         DAW_PREF_NAME( i32 ),
+
+	/**
+	 *
+	 */
+	struct [[DAW_PREF_NAME( i8 ), DAW_PREF_NAME( i16 ), DAW_PREF_NAME( i32 ),
 	         DAW_PREF_NAME( i64 )]] signed_integer {
 		using SignedInteger = typename sint_impl::signed_integer_type<Bits>::type;
 		static_assert( daw::is_integral_v<SignedInteger> and
@@ -98,10 +98,12 @@ namespace daw::integers {
 		using reference = value_type &;
 		using const_reference = value_type const &;
 
+		/// @brief Returns the maximum value of the underlying integer type
 		[[nodiscard]] static DAW_CONSTEVAL signed_integer max( ) noexcept {
 			return signed_integer( daw::numeric_limits<value_type>::max( ) );
 		}
 
+		/// @brief Returns the minimum value of the underlying integer type
 		[[nodiscard]] static DAW_CONSTEVAL signed_integer min( ) noexcept {
 			return signed_integer( daw::numeric_limits<value_type>::min( ) );
 		}
@@ -125,6 +127,12 @@ namespace daw::integers {
 			}
 		}
 
+		/// @brief Creates an integer from a bytes object using little-endian byte
+		/// order.
+		/// @param ptr A byte array representing the integer in little-endian byte
+		/// order
+		/// @return The signed_integer represented by the bytes in little-endian
+		/// order.
 		[[nodiscard]] static constexpr signed_integer
 		from_bytes_le( unsigned char const *ptr ) noexcept {
 			return signed_integer(
@@ -132,6 +140,11 @@ namespace daw::integers {
 			    ptr, std::make_index_sequence<sizeof( value_type )>{ } ) );
 		}
 
+		/// @brief `from_bytes_be` function that creates an integer from a bytes
+		/// object using big-endian byte order.
+		/// @param ptr A byte array representing the integer in big-endian byte
+		/// order
+		/// @return The signed_integer represented by the bytes in big-endian order.
 		[[nodiscard]] static constexpr signed_integer
 		from_bytes_be( unsigned char const *ptr ) noexcept {
 			return signed_integer(
@@ -139,6 +152,10 @@ namespace daw::integers {
 			    ptr, std::make_index_sequence<sizeof( value_type )>{ } ) );
 		}
 
+		/// @brief `conversion_checked` provides safe type conversion operations
+		/// with overflow and underflow checks.
+		/// @param other Integer to convert to signed_integer
+		/// @returns A signed_integer with value of other
 		template<typename I,
 		         std::enable_if_t<daw::is_integral_v<I> and daw::is_signed_v<I>,
 		                          std::nullptr_t> = nullptr>
@@ -152,24 +169,40 @@ namespace daw::integers {
 			return signed_integer( static_cast<value_type>( other ) );
 		}
 
+		/// @brief `conversion_checked` provides safe type conversion operations
+		/// with overflow and underflow checks.
+		/// @param other signed_integer of different size to convert
+		/// @returns A signed_integer with value of other
 		template<std::size_t I>
 		[[nodiscard]] static constexpr signed_integer
 		conversion_checked( signed_integer<I> other ) {
 			return signed_integer( conversion_checked( other.value( ) ) );
 		}
 
+		/// @brief Performs an unchecked conversion between signed integer types.
+		/// @tparam I The type of the signed integer to be converted.
+		/// @param other The signed integer value to convert.
+		/// @return The converted signed integer value.
 		template<std::size_t I>
 		[[nodiscard]] static constexpr signed_integer
 		conversion_unchecked( signed_integer<I> other ) {
 			return signed_integer( static_cast<value_type>( other.value( ) ) );
 		}
 
+		/// @brief Converts another numeric type to a signed integer without bounds
+		/// checking.
+		/// @tparam I The type of the input parameter to be converted.
+		/// @param other The input value to be converted to a signed integer.
+		/// @return A `signed_integer` representing the converted value.
 		template<typename I,
 		         std::enable_if_t<daw::is_integral_v<I>, std::nullptr_t> = nullptr>
 		static constexpr signed_integer conversion_unchecked( I other ) {
 			return signed_integer( static_cast<value_type>( other ) );
 		}
 
+		/// @brief Construct a signed_integer from another that has a larger range
+		/// @tparam I The type of the input parameter to be converted.
+		/// @param other The input value to be constructed from
 		template<std::size_t I,
 		         std::enable_if_t<( I > Bits ), std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE explicit constexpr signed_integer(
@@ -182,14 +215,15 @@ namespace daw::integers {
 #endif
 		}
 
-		// Construct from types guaranteed to fit
-		template<std::size_t I,
-		         std::enable_if_t<( I / 8 <= sizeof( value_type ) ),
-		                          std::nullptr_t> = nullptr>
+		// @brief Construct a signed_integer from another signed_integer of smaller
+		// range.  No checks are needed
+		template<std::size_t I, std::enable_if_t<( I / 8 <= sizeof( value_type ) ),
+		                                         std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE constexpr signed_integer(
 		  signed_integer<I> other ) noexcept
 		  : m_private{ static_cast<value_type>( other.value( ) ) } {}
 
+		/// @brief Allow conversion to an arithmetic type
 		template<typename Arithmetic,
 		         std::enable_if_t<daw::is_arithmetic_v<Arithmetic>,
 		                          std::nullptr_t> = nullptr>
@@ -198,11 +232,12 @@ namespace daw::integers {
 			return static_cast<Arithmetic>( value( ) );
 		}
 
-		template<std::size_t I,
-		         std::enable_if_t<sint_impl::convertible_signed_int<
-		                            sint_impl::signed_integer_type_t<I>,
-		                            value_type>,
-		                          std::nullptr_t> = nullptr>
+		/// Allow conversion to signed_integer types that are larger in range
+		template<
+		  std::size_t I,
+		  std::enable_if_t<sint_impl::convertible_signed_int<
+		                     sint_impl::signed_integer_type_t<I>, value_type>,
+		                   std::nullptr_t> = nullptr>
 		[[nodiscard]] DAW_ATTRIB_INLINE explicit constexpr
 		operator signed_integer<I>( ) const noexcept {
 			return signed_integer<I>( value( ) );
@@ -628,13 +663,10 @@ namespace daw::integers {
 	};
 
 	template<typename I,
-	         typename U =
-	           std::enable_if_t<daw::traits::is_one_of_v<daw::make_signed_t<I>,
-	                                                     std::int8_t,
-	                                                     std::int16_t,
-	                                                     std::int32_t,
-	                                                     std::int64_t>,
-	                            daw::make_signed_t<I>>>
+	         typename U = std::enable_if_t<
+	           daw::traits::is_one_of_v<daw::make_signed_t<I>, std::int8_t,
+	                                    std::int16_t, std::int32_t, std::int64_t>,
+	           daw::make_signed_t<I>>>
 	signed_integer( I ) -> signed_integer<sizeof( U ) * 8>;
 
 	// Addition
@@ -1035,6 +1067,7 @@ namespace daw::integers {
 	  -> decltype( daw::cmp_less_equal( lhs, rhs.value( ) ) ) {
 		return daw::cmp_less_equal( lhs, rhs.value( ) );
 	}
+
 	// Greater Than
 	template<std::size_t Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr bool
