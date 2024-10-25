@@ -83,11 +83,9 @@ namespace daw::integers {
 	using i32 = signed_integer<32>;
 	using i64 = signed_integer<64>;
 
+	/// @brief Signed Integer type with overflow checked/wrapping/saturated
+	/// operations
 	template<std::size_t Bits>
-
-	/**
-	 *
-	 */
 	struct [[DAW_PREF_NAME( i8 ), DAW_PREF_NAME( i16 ), DAW_PREF_NAME( i32 ),
 	         DAW_PREF_NAME( i64 )]] signed_integer {
 		using SignedInteger = typename sint_impl::signed_integer_type<Bits>::type;
@@ -232,7 +230,7 @@ namespace daw::integers {
 			return static_cast<Arithmetic>( value( ) );
 		}
 
-		/// Allow conversion to signed_integer types that are larger in range
+		/// @brief Allow conversion to signed_integer types that are larger in range
 		template<
 		  std::size_t I,
 		  std::enable_if_t<sint_impl::convertible_signed_int<
@@ -243,11 +241,7 @@ namespace daw::integers {
 			return signed_integer<I>( value( ) );
 		}
 
-		[[nodiscard]] DAW_ATTRIB_INLINE constexpr reference value( ) noexcept {
-			return m_private.value;
-		}
-
-		[[nodiscard]] DAW_ATTRIB_INLINE constexpr const_reference
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr value_type
 		value( ) const noexcept {
 			return m_private.value;
 		}
@@ -288,12 +282,13 @@ namespace daw::integers {
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator+=( signed_integer const &rhs ) {
-			value( ) = sint_impl::debug_checked_add( value( ), rhs.value( ) );
+			m_private.value = sint_impl::debug_checked_add( value( ), rhs.value( ) );
 			return *this;
 		}
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator++( ) {
-			value( ) = sint_impl::debug_checked_add( value( ), value_type{ 1 } );
+			m_private.value =
+			  sint_impl::debug_checked_add( value( ), value_type{ 1 } );
 			return *this;
 		}
 
@@ -332,7 +327,7 @@ namespace daw::integers {
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator-=( signed_integer const &rhs ) {
-			value( ) = sint_impl::debug_checked_sub( value( ), rhs.value( ) );
+			m_private.value = sint_impl::debug_checked_sub( value( ), rhs.value( ) );
 			return *this;
 		}
 
@@ -364,7 +359,8 @@ namespace daw::integers {
 		}
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator--( ) {
-			value( ) = sint_impl::debug_checked_sub( value( ), value_type{ 1 } );
+			m_private.value =
+			  sint_impl::debug_checked_sub( value( ), value_type{ 1 } );
 			return *this;
 		}
 
@@ -376,7 +372,7 @@ namespace daw::integers {
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator*=( signed_integer const &rhs ) {
-			value( ) = sint_impl::debug_checked_mul( value( ), rhs.value( ) );
+			m_private.value = sint_impl::debug_checked_mul( value( ), rhs.value( ) );
 			return *this;
 		}
 
@@ -409,7 +405,7 @@ namespace daw::integers {
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator/=( signed_integer const &rhs ) {
-			value( ) = sint_impl::debug_checked_div( value( ), rhs.value( ) );
+			m_private.value = sint_impl::debug_checked_div( value( ), rhs.value( ) );
 			return *this;
 		}
 
@@ -446,7 +442,7 @@ namespace daw::integers {
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator%=( signed_integer const &rhs ) {
-			value( ) = sint_impl::debug_checked_rem( value( ), rhs.value( ) );
+			m_private.value = sint_impl::debug_checked_rem( value( ), rhs.value( ) );
 			return *this;
 		}
 
@@ -477,7 +473,7 @@ namespace daw::integers {
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator<<=( signed_integer const &rhs ) {
-			value( ) = sint_impl::debug_checked_shl( value( ), rhs.value( ) );
+			m_private.value = sint_impl::debug_checked_shl( value( ), rhs.value( ) );
 			return *this;
 		}
 
@@ -526,7 +522,7 @@ namespace daw::integers {
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator>>=( signed_integer const &rhs ) {
-			value( ) = sint_impl::debug_checked_shr( value( ), rhs.value( ) );
+			m_private.value = sint_impl::debug_checked_shr( value( ), rhs.value( ) );
 			return *this;
 		}
 
@@ -587,7 +583,7 @@ namespace daw::integers {
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator|=( signed_integer const &rhs ) noexcept {
-			value( ) |= rhs.value( );
+			m_private.value |= rhs.value( );
 			return *this;
 		}
 
@@ -595,13 +591,13 @@ namespace daw::integers {
 		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
 		                          std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator|=( I rhs ) {
-			value( ) |= static_cast<value_type>( rhs );
+			m_private.value |= static_cast<value_type>( rhs );
 			return *this;
 		}
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator&=( signed_integer const &rhs ) const noexcept {
-			value( ) &= rhs.value( );
+			m_private.value &= rhs.value( );
 			return *this;
 		}
 
@@ -609,13 +605,13 @@ namespace daw::integers {
 		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
 		                          std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator&=( I rhs ) {
-			value( ) &= static_cast<value_type>( rhs );
+			m_private.value &= static_cast<value_type>( rhs );
 			return *this;
 		}
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator^=( signed_integer const &rhs ) const noexcept {
-			value( ) ^= rhs.value( );
+			m_private.value ^= rhs.value( );
 			return *this;
 		}
 
@@ -623,7 +619,7 @@ namespace daw::integers {
 		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
 		                          std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator^=( I rhs ) {
-			value( ) ^= static_cast<value_type>( rhs );
+			m_private.value ^= static_cast<value_type>( rhs );
 			return *this;
 		}
 
@@ -851,7 +847,7 @@ namespace daw::integers {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
 		using rhs_t = sint_impl::signed_integer_type_t<Rhs>;
 		using result_t = sint_impl::int_result_t<lhs_t, rhs_t>;
-		return result_t( lhs.value( ) ) <<= result_t( rhs.value( ) );
+		return result_t( lhs.m_private.value ) <<= result_t( rhs.value( ) );
 	}
 
 	template<std::size_t Lhs, typename Rhs>
@@ -860,7 +856,7 @@ namespace daw::integers {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
 		using rhs_t = Rhs;
 		using result_t = sint_impl::int_result_t<lhs_t, rhs_t>;
-		return result_t( lhs.value( ) ) <<= result_t( rhs );
+		return result_t( lhs.m_private.value ) <<= result_t( rhs );
 	}
 
 	template<typename Lhs, std::size_t Rhs>
@@ -879,7 +875,7 @@ namespace daw::integers {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
 		using rhs_t = sint_impl::signed_integer_type_t<Rhs>;
 		using result_t = sint_impl::int_result_t<lhs_t, rhs_t>;
-		return result_t( lhs.value( ) ) >>= result_t( rhs.value( ) );
+		return result_t( lhs.m_private.value ) >>= result_t( rhs.value( ) );
 	}
 
 	template<std::size_t Lhs, typename Rhs>
@@ -888,7 +884,7 @@ namespace daw::integers {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
 		using rhs_t = Rhs;
 		using result_t = sint_impl::int_result_t<lhs_t, rhs_t>;
-		return result_t( lhs.value( ) ) >>= result_t( rhs );
+		return result_t( lhs.m_private.value ) >>= result_t( rhs );
 	}
 
 	template<typename Lhs, std::size_t Rhs>
@@ -907,7 +903,7 @@ namespace daw::integers {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
 		using rhs_t = sint_impl::signed_integer_type_t<Rhs>;
 		using result_t = sint_impl::int_result_t<lhs_t, rhs_t>;
-		return result_t( lhs.value( ) ) |= result_t( rhs.value( ) );
+		return result_t( lhs.m_private.value ) |= result_t( rhs.value( ) );
 	}
 
 	template<std::size_t Lhs, typename Rhs>
@@ -916,7 +912,7 @@ namespace daw::integers {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
 		using rhs_t = Rhs;
 		using result_t = sint_impl::int_result_t<lhs_t, rhs_t>;
-		return result_t( lhs.value( ) ) |= result_t( rhs );
+		return result_t( lhs.m_private.value ) |= result_t( rhs );
 	}
 
 	template<typename Lhs, std::size_t Rhs>
@@ -935,7 +931,7 @@ namespace daw::integers {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
 		using rhs_t = sint_impl::signed_integer_type_t<Rhs>;
 		using result_t = sint_impl::int_result_t<lhs_t, rhs_t>;
-		return result_t( lhs.value( ) ) &= result_t( rhs.value( ) );
+		return result_t( lhs.m_private.value ) &= result_t( rhs.value( ) );
 	}
 
 	template<std::size_t Lhs, typename Rhs>
@@ -944,7 +940,7 @@ namespace daw::integers {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
 		using rhs_t = Rhs;
 		using result_t = sint_impl::int_result_t<lhs_t, rhs_t>;
-		return result_t( lhs.value( ) ) &= result_t( rhs );
+		return result_t( lhs.m_private.value ) &= result_t( rhs );
 	}
 
 	template<typename Lhs, std::size_t Rhs>
@@ -963,7 +959,7 @@ namespace daw::integers {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
 		using rhs_t = sint_impl::signed_integer_type_t<Rhs>;
 		using result_t = sint_impl::int_result_t<lhs_t, rhs_t>;
-		return result_t( lhs.value( ) ) ^= result_t( rhs.value( ) );
+		return result_t( lhs.m_private.value ) ^= result_t( rhs.value( ) );
 	}
 
 	template<std::size_t Lhs, typename Rhs>
@@ -972,7 +968,7 @@ namespace daw::integers {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
 		using rhs_t = Rhs;
 		using result_t = sint_impl::int_result_t<lhs_t, rhs_t>;
-		return result_t( lhs.value( ) ) ^= result_t( rhs );
+		return result_t( lhs.m_private.value ) ^= result_t( rhs );
 	}
 
 	template<typename Lhs, std::size_t Rhs>
