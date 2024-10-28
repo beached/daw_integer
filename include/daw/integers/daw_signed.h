@@ -86,6 +86,10 @@ namespace daw::integers {
 	/// @brief Signed Integer type with overflow checked/wrapping/saturated
 	/// operations
 	template<std::size_t Bits>
+	/**
+	 * @brief Constructs a signed_integer from an integer type.
+	 * @tparam I The type of the input parameter.
+	 * @param v The value*/
 	struct [[DAW_PREF_NAME( i8 ), DAW_PREF_NAME( i16 ), DAW_PREF_NAME( i32 ),
 	         DAW_PREF_NAME( i64 )]] signed_integer {
 		using SignedInteger = typename sint_impl::signed_integer_type<Bits>::type;
@@ -241,81 +245,106 @@ namespace daw::integers {
 			return signed_integer<I>( value( ) );
 		}
 
+		/// @brief Access to underlying value
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr value_type
 		value( ) const noexcept {
 			return m_private.value;
 		}
 
-		[[nodiscard]] DAW_ATTRIB_INLINE constexpr bool operator not( ) const {
-			return not value( );
-		}
-
+		/// @brief Negate the value performing checks in debug mode
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		operator-( ) const {
 			return signed_integer( sint_impl::debug_checked_neg( value( ) ) );
 		}
 
+		// @brief Returns the negated value of the signed_integer, ensuring it is
+		// within valid range.
+		// @return The negated signed_integer value, ensuring it does not overflow.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		negate_checked( ) const {
 			return signed_integer( sint_impl::checked_neg( value( ) ) );
 		}
 
+		// @brief Negates the current signed_integer without performing any
+		// validation checks.
+		// @return A new signed_integer instance with the negated value of the
+		// current instance.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		negate_unchecked( ) const {
 			return signed_integer( -value( ) );
 		}
 
+		// @brief Negates the current signed_integer, wrapping when overflow happens
+		// @return A new signed_integer instance with the negated value of the
+		// current instance.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		negate_wrapped( ) const {
 			return mul_wrapped( signed_integer( -1 ) );
 		}
 
+		// @brief Negates the current signed_integer, saturating when overflow
+		// happens
+		// @return A new signed_integer instance with the negated value of the
+		// current instance.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		negate_saturated( ) const {
 			return mul_saturated( signed_integer( -1 ) );
 		}
 
+		/// @brief Computes the bitwise not and returns as a signed integer
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		operator~( ) const {
 			return signed_integer( static_cast<value_type>( ~value( ) ) );
 		}
 
+		/// @brief Add signed_integer rhs to self.  Checked in debug mode
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator+=( signed_integer const &rhs ) {
 			m_private.value = sint_impl::debug_checked_add( value( ), rhs.value( ) );
 			return *this;
 		}
 
+		/// @brief increment current value.  Checked in debug mode
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator++( ) {
 			m_private.value =
 			  sint_impl::debug_checked_add( value( ), value_type{ 1 } );
 			return *this;
 		}
 
+		/// @brief increment current value and return previous value.  Checked in
+		/// debug mode
+		DAW_ATTRIB_INLINE constexpr signed_integer operator++( int ) {
+			auto result = *this;
+			operator++( );
+			return result;
+		}
+
+		/// @brief add rhs to current value and return a new signed_integer.
+		/// Addition is checked and calls error handler on overflow.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		add_checked( signed_integer const &rhs ) const {
 			return signed_integer( sint_impl::checked_add( value( ), rhs.value( ) ) );
 		}
 
+		/// @brief add rhs to current value and return a new signed_integer.
+		/// Addition is wrapped on overflow.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		add_wrapped( signed_integer const &rhs ) const {
 			return signed_integer( sint_impl::wrapped_add( value( ), rhs.value( ) ) );
 		}
 
+		/// @brief add rhs to current value and return a new signed_integer. No
+		/// overflow checking is performed
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		add_unchecked( signed_integer const &rhs ) const {
 			return value( ) + rhs.value( );
 		}
 
+		/// @brief saturated addition of rhs and current value and return a new
+		/// signed_integer.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		add_saturated( signed_integer const &rhs ) const {
 			return signed_integer( sint_impl::sat_add( value( ), rhs.value( ) ) );
-		}
-
-		DAW_ATTRIB_INLINE constexpr signed_integer operator++( int ) {
-			auto result = *this;
-			operator++( );
-			return result;
 		}
 
 		template<typename I,

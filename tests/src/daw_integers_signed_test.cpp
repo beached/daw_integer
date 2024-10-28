@@ -39,6 +39,10 @@ static_assert( sizeof( daw::i8 ) == 1 );
 static_assert( sizeof( daw::i16 ) == 2 );
 static_assert( sizeof( daw::i32 ) == 4 );
 static_assert( sizeof( daw::i64 ) == 8 );
+static_assert( std::is_standard_layout_v<daw::i8> );
+static_assert( std::is_standard_layout_v<daw::i16> );
+static_assert( std::is_standard_layout_v<daw::i32> );
+static_assert( std::is_standard_layout_v<daw::i64> );
 
 DAW_ATTRIB_NOINLINE int test_plus( std::initializer_list<daw::i32> const &vals,
                                    daw::i32 expected ) {
@@ -243,6 +247,7 @@ int main( ) {
 		auto i0 = daw::i64::min( );
 		--i0;
 		daw_ensure( has_overflow );
+		daw_ensure( i0 == daw::i64::max( ) );
 	}
 	{
 		has_div_by_zero = false;
