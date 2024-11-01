@@ -10,7 +10,6 @@ include( cmake/test_compiler_options.cmake )
 
 add_library( daw_integer_test_lib INTERFACE )
 target_link_libraries( daw_integer_test_lib INTERFACE daw::daw-integer )
-target_include_directories( daw_integer_test_lib INTERFACE include/ )
 
 add_executable( signed_test_bin src/daw_integers_signed_test.cpp )
 target_link_libraries( signed_test_bin PRIVATE daw_integer_test_lib )

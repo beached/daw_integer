@@ -347,6 +347,8 @@ namespace daw::integers {
 			return signed_integer( sint_impl::sat_add( value( ), rhs.value( ) ) );
 		}
 
+		/// @brief Add rhs to this and return a ref this this.  Checked while in
+		/// debug
 		template<typename I,
 		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
 		                          std::nullptr_t> = nullptr>
@@ -354,12 +356,16 @@ namespace daw::integers {
 			return *this += signed_integer( rhs );
 		}
 
+		/// @brief Subtract rhs to this and return a ref this this.  Checked while
+		/// in debug
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator-=( signed_integer const &rhs ) {
 			m_private.value = sint_impl::debug_checked_sub( value( ), rhs.value( ) );
 			return *this;
 		}
 
+		/// @brief Subtract rhs to this and return a ref this this.  Checked while
+		/// in debug
 		template<typename I,
 		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
 		                          std::nullptr_t> = nullptr>
@@ -367,44 +373,60 @@ namespace daw::integers {
 			return *this -= signed_integer( rhs );
 		}
 
+		/// @brief Subtract rhs from this and return a new signed_integer.  Checked
+		/// for overflow.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		sub_checked( signed_integer const &rhs ) const {
 			return signed_integer( sint_impl::checked_sub( value( ), rhs.value( ) ) );
 		}
 
+		/// @brief Subtract rhs from this and return a new signed_integer.  On
+		/// overflow value is wrapped
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		sub_wrapped( signed_integer const &rhs ) const {
 			return signed_integer( sint_impl::wrapped_sub( value( ), rhs.value( ) ) );
 		}
 
+		/// @brief Subtract rhs from this and return a new signed_integer.  No
+		/// overflow checking.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		sub_unchecked( signed_integer const &rhs ) const {
 			return value( ) - rhs.value( );
 		}
 
+		/// @brief Subtract rhs from this and return a new signed_integer.  On
+		/// overflow value is saturated.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		sub_saturated( signed_integer const &rhs ) const {
 			return signed_integer( sint_impl::sat_sub( value( ), rhs.value( ) ) );
 		}
 
+		/// @brief prefix increment return a ref to self. Checked in debug
+		/// modes.
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator--( ) {
 			m_private.value =
 			  sint_impl::debug_checked_sub( value( ), value_type{ 1 } );
 			return *this;
 		}
 
+		/// @brief postfix increment return a ref to self. Checked in debug
+		/// modes.
 		DAW_ATTRIB_INLINE constexpr signed_integer operator--( int ) {
 			auto result = *this;
 			operator--( );
 			return result;
 		}
 
+		/// @brief Multiple self with rhs and store the product in this.  Checked in
+		/// debug modes
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator*=( signed_integer const &rhs ) {
 			m_private.value = sint_impl::debug_checked_mul( value( ), rhs.value( ) );
 			return *this;
 		}
 
+		/// @brief Multiple self with rhs and store the product in this.  Checked in
+		/// debug modes
 		template<typename I,
 		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
 		                          std::nullptr_t> = nullptr>
@@ -412,21 +434,29 @@ namespace daw::integers {
 			return *this *= signed_integer( rhs );
 		}
 
+		/// @brief Perform checked multiplication with rhs and return a new
+		/// signed_integer
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		mul_checked( signed_integer const &rhs ) const {
 			return signed_integer( sint_impl::checked_mul( value( ), rhs.value( ) ) );
 		}
 
+		/// @brief Perform wrapped multiplication with rhs and return a new
+		/// signed_integer
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		mul_wrapped( signed_integer const &rhs ) const {
 			return signed_integer( sint_impl::wrapped_mul( value( ), rhs.value( ) ) );
 		}
 
+		/// @brief Perform unchecked multiplication with rhs and return a new
+		/// signed_integer
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		mul_uncheck( signed_integer const &rhs ) const {
 			return value( ) * rhs.value( );
 		}
 
+		/// @brief Perform saturated multiplication with rhs and return a new
+		/// signed_integer
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		mul_saturated( signed_integer const &rhs ) const {
 			return signed_integer( sint_impl::sat_mul( value( ), rhs.value( ) ) );
