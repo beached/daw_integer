@@ -119,7 +119,7 @@ namespace daw::integers {
 		// Construct from an integer type and ensure value_type is large enough
 		template<typename I,
 		         std::enable_if_t<daw::is_integral_v<I>, std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE constexpr explicit signed_integer( I v ) noexcept
+		DAW_ATTRIB_INLINE constexpr explicit signed_integer( I v )
 		  : m_private{ static_cast<value_type>( v ) } {
 			if constexpr( not sint_impl::convertible_signed_int<value_type, I> ) {
 				if( DAW_UNLIKELY( not daw::in_range<value_type>( v ) ) ) {
@@ -208,7 +208,7 @@ namespace daw::integers {
 		template<std::size_t I,
 		         std::enable_if_t<( I > Bits ), std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE explicit constexpr signed_integer(
-		  signed_integer<I> other ) noexcept
+		  signed_integer<I> other )
 		  : m_private{ static_cast<value_type>( other.value( ) ) } {
 #if DAW_DEFAULT_SIGNED_CHECKING == 0
 			if( not daw::in_range<value_type>( other.value( ) ) ) {
@@ -1167,7 +1167,7 @@ namespace daw::integers {
 
 	namespace literals {
 		[[nodiscard]] DAW_CONSTEVAL signed_integer<8>
-		operator""_i8( unsigned long long v ) noexcept {
+		operator""_i8( unsigned long long v ) {
 			using int_t = std::int8_t;
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
@@ -1176,7 +1176,7 @@ namespace daw::integers {
 		}
 
 		[[nodiscard]] DAW_CONSTEVAL signed_integer<16>
-		operator""_i16( unsigned long long v ) noexcept {
+		operator""_i16( unsigned long long v ) {
 			using int_t = std::int16_t;
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
@@ -1185,7 +1185,7 @@ namespace daw::integers {
 		}
 
 		[[nodiscard]] DAW_CONSTEVAL signed_integer<32>
-		operator""_i32( unsigned long long v ) noexcept {
+		operator""_i32( unsigned long long v ) {
 			using int_t = std::int32_t;
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
@@ -1194,7 +1194,7 @@ namespace daw::integers {
 		}
 
 		[[nodiscard]] DAW_CONSTEVAL signed_integer<64>
-		operator""_i64( unsigned long long v ) noexcept {
+		operator""_i64( unsigned long long v ) {
 			using int_t = std::int64_t;
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
