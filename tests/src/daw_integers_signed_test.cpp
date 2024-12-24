@@ -15,6 +15,7 @@
 #include <daw/daw_ensure.h>
 
 #include <initializer_list>
+#include <iostream>
 
 using namespace daw::integers::literals;
 
@@ -54,15 +55,15 @@ DAW_ATTRIB_NOINLINE int test_plus( std::initializer_list<daw::i32> const &vals,
 	return sum.value( );
 }
 
-DAW_ATTRIB_NOINLINE daw::i32
-test_div( daw::i32 first, daw::i32 inc, daw::i32 expected ) {
+DAW_ATTRIB_NOINLINE daw::i32 test_div( daw::i32 first, daw::i32 inc,
+                                       daw::i32 expected ) {
 	first /= inc;
 	daw_ensure( first == expected );
 	return first;
 }
 
-DAW_ATTRIB_NOINLINE daw::i64
-test_div( daw::i64 first, daw::i64 inc, daw::i64 expected ) {
+DAW_ATTRIB_NOINLINE daw::i64 test_div( daw::i64 first, daw::i64 inc,
+                                       daw::i64 expected ) {
 	first /= inc;
 	daw_ensure( first == expected );
 	return first;
@@ -77,7 +78,7 @@ struct check_eql_t<V, V> : std::true_type {};
 template<auto L, auto R>
 inline constexpr auto check_equal = check_eql_t<L, R>::value;
 
-int main( ) {
+int main( ) try {
 	bool has_overflow = false;
 	bool has_div_by_zero = false;
 	auto const error_handler =
@@ -131,6 +132,7 @@ int main( ) {
 		auto i0 = daw::i8::max( );
 		auto i1 = daw::i8::max( );
 		i0 += i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -138,6 +140,7 @@ int main( ) {
 		auto i0 = daw::i16::max( );
 		auto i1 = daw::i16::max( );
 		i0 += i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -145,6 +148,7 @@ int main( ) {
 		auto i0 = daw::i32::max( );
 		auto i1 = daw::i32::max( );
 		i0 += i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -152,6 +156,7 @@ int main( ) {
 		auto i0 = daw::i64::max( );
 		auto i1 = daw::i64::max( );
 		i0 += i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -161,6 +166,7 @@ int main( ) {
 		daw::do_not_optimize( i0 );
 		daw::do_not_optimize( i1 );
 		i0 -= i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -168,6 +174,7 @@ int main( ) {
 		auto i0 = daw::i16::min( );
 		auto i1 = daw::i16::max( );
 		i0 -= i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -175,6 +182,7 @@ int main( ) {
 		auto i0 = daw::i32::min( );
 		auto i1 = daw::i32::max( );
 		i0 -= i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -182,6 +190,7 @@ int main( ) {
 		auto i0 = daw::i16::min( );
 		auto i1 = daw::i16::max( );
 		i0 -= i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -189,6 +198,7 @@ int main( ) {
 		auto i0 = daw::i8::max( );
 		auto i1 = daw::i8::max( );
 		i0 *= i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -196,6 +206,7 @@ int main( ) {
 		auto i0 = daw::i16::max( );
 		auto i1 = daw::i16::max( );
 		i0 *= i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -203,6 +214,7 @@ int main( ) {
 		auto i0 = daw::i32::max( );
 		auto i1 = daw::i32::max( );
 		i0 *= i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -210,24 +222,27 @@ int main( ) {
 		auto i0 = daw::i64::max( );
 		auto i1 = daw::i64::max( );
 		i0 *= i1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
 		has_overflow = false;
 		auto i0 = daw::i64::min( );
 		i0 *= -1;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
 		has_overflow = false;
 		auto i0 = daw::i64::min( );
 		--i0;
+		(void)i0;
 		daw_ensure( has_overflow );
 	}
 	{
 		has_overflow = false;
 		auto i0 = daw::i64::min( );
-		i0--;
+		(void)i0--;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -239,7 +254,7 @@ int main( ) {
 	{
 		has_overflow = false;
 		auto i0 = daw::i64::max( );
-		i0++;
+		(void)i0++;
 		daw_ensure( has_overflow );
 	}
 	{
@@ -259,12 +274,13 @@ int main( ) {
 		has_overflow = false;
 		has_div_by_zero = false;
 		has_exception = false;
+		(void)has_exception;
 		auto i0 = 5_i32;
-		daw::i8 i1 = static_cast<daw::i8>( i0 );
+		auto i1 = static_cast<daw::i8>( i0 );
 		(void)i1;
 		daw_ensure( not has_overflow );
 		i0 = daw::i32::max( );
-		daw::i8 i2 = static_cast<daw::i8>( i0 );
+		auto i2 = static_cast<daw::i8>( i0 );
 		static_assert( not std::is_convertible_v<daw::i32, daw::i8> );
 		static_assert( std::is_convertible_v<daw::i8, daw::i32> );
 		static_assert( std::is_constructible_v<daw::i8, daw::i32> );
@@ -277,21 +293,25 @@ int main( ) {
 	{
 		has_overflow = false;
 		auto i0 = daw::i8::conversion_checked( 12 );
+		(void)i0;
 		daw_ensure( not has_overflow );
 		i0 = daw::i8::conversion_checked( 255 );
+		(void)i0;
 		daw_ensure( has_overflow );
 		has_overflow = false;
 		auto i1 = daw::i32::conversion_checked( 5000 );
 		daw::i8 i2 = daw::i8::conversion_checked( i1 );
+		(void)i2;
 		daw_ensure( has_overflow );
 		has_overflow = false;
 		i1 = daw::i8( 55 );
 		i2 = daw::i8::conversion_checked( i1 );
+		(void)i2;
 		daw_ensure( not has_overflow );
 	}
 	{
-		std::uint32_t const le_val = 0x0123'4567U;
-		std::uint32_t const be_val = 0x6745'2301U;
+		constexpr std::uint32_t le_val = 0x0123'4567U;
+		constexpr std::uint32_t be_val = 0x6745'2301U;
 		auto const le_bytes = reinterpret_cast<unsigned char const *>( &le_val );
 		auto const le_le = daw::i32::from_bytes_le( le_bytes );
 		daw_ensure( static_cast<std::uint32_t>( le_le ) == le_val );
@@ -391,4 +411,7 @@ int main( ) {
 	               daw::i64::conversion_unchecked( 0x5555'5555'5555'5555ULL ) );
 	static_assert( daw::i64::conversion_unchecked( 0x8000'0000'0000'0000ULL )
 	                 .reverse_bits( ) == daw::i64::conversion_unchecked( 1ULL ) );
+} catch( ... ) {
+	std::cerr << "Unexpected exception thrown\n" << std::flush;
+	throw;
 }

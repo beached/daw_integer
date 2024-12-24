@@ -72,10 +72,9 @@ namespace daw::integers {
 		  typename Lhs, typename Rhs,
 		  std::enable_if_t<is_signed_integral_v<Lhs> and is_signed_integral_v<Rhs>,
 		                   std::nullptr_t> = nullptr>
-		using int_result_t =
-		  typename std::conditional<( sizeof( Lhs ) >= sizeof( Rhs ) ),
-		                            signed_integer<sizeof( Lhs ) * 8>,
-		                            signed_integer<sizeof( Rhs ) * 8>>::type;
+		using int_result_t = std::conditional_t<( sizeof( Lhs ) >= sizeof( Rhs ) ),
+		                                        signed_integer<sizeof( Lhs ) * 8>,
+		                                        signed_integer<sizeof( Rhs ) * 8>>;
 	} // namespace sint_impl
 
 	using i8 = signed_integer<8>;
