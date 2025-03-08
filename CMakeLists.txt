@@ -30,7 +30,7 @@ add_library( ${PROJECT_NAME} INTERFACE )
 add_library( daw::${PROJECT_NAME} ALIAS ${PROJECT_NAME} )
 target_link_libraries( ${PROJECT_NAME} INTERFACE daw::daw-header-libraries )
 
-target_compile_features( ${PROJECT_NAME} INTERFACE cxx_std_17 )
+target_compile_features( ${PROJECT_NAME} INTERFACE cxx_std_20 )
 target_include_directories( ${PROJECT_NAME}
                             INTERFACE
                             "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

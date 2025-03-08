@@ -14,6 +14,7 @@
 
 #include <daw/daw_arith_traits.h>
 #include <daw/daw_attributes.h>
+#include <daw/daw_bit_count.h>
 #include <daw/daw_consteval.h>
 #include <daw/daw_cpp_feature_check.h>
 #include <daw/daw_int_cmp.h>
@@ -167,9 +168,9 @@ namespace daw::integers::sint_impl {
 			if( DAW_UNLIKELY( rhs == 0 ) ) {
 				on_signed_integer_overflow( );
 				return lhs;
-			} else if( DAW_UNLIKELY( rhs >= ( sizeof( rhs ) * CHAR_BIT ) ) ) {
+			} else if( DAW_UNLIKELY( rhs >= daw::bit_count_v<T> ) ) {
 				on_signed_integer_overflow( );
-				return lhs << ( sizeof( T ) * CHAR_BIT - 1 );
+				return lhs << ( daw::bit_count_v<T> - 1 );
 			}
 			return lhs << rhs;
 		}
@@ -184,9 +185,9 @@ namespace daw::integers::sint_impl {
 			if( DAW_UNLIKELY( rhs == 0 ) ) {
 				on_signed_integer_overflow( );
 				return lhs;
-			} else if( DAW_UNLIKELY( rhs >= ( sizeof( rhs ) * CHAR_BIT ) ) ) {
+			} else if( DAW_UNLIKELY( rhs >= daw::bit_count_v<T> ) ) {
 				on_signed_integer_overflow( );
-				return lhs >> ( sizeof( T ) * CHAR_BIT - 1 );
+				return lhs >> ( daw::bit_count_v<T> - 1 );
 			}
 			return lhs >> rhs;
 		}

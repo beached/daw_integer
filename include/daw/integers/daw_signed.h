@@ -13,6 +13,7 @@
 
 #include <daw/daw_arith_traits.h>
 #include <daw/daw_attributes.h>
+#include <daw/daw_bit_count.h>
 #include <daw/daw_consteval.h>
 #include <daw/daw_cpp_feature_check.h>
 #include <daw/daw_cxmath.h>
@@ -60,18 +61,14 @@ namespace daw::integers {
 		template<std::size_t Bits>
 		using signed_integer_type_t = typename signed_integer_type<Bits>::type;
 
-		template<typename, typename = void>
-		inline constexpr bool is_signed_integral_v = false;
+		template<typename T>
+		inline constexpr bool is_signed_integral_v =
+		  daw::is_integral_v<T> and daw::is_signed_v<T>;
 
 		template<typename T>
-		inline constexpr bool is_signed_integral_v<
-		  T, std::enable_if_t<daw::is_integral_v<T> and daw::is_signed_v<T>>> =
-		  true;
+		concept SignedIntegral = is_signed_integral_v<T>;
 
-		template<
-		  typename Lhs, typename Rhs,
-		  std::enable_if_t<is_signed_integral_v<Lhs> and is_signed_integral_v<Rhs>,
-		                   std::nullptr_t> = nullptr>
+		template<SignedIntegral Lhs, SignedIntegral Rhs>
 		using int_result_t =
 		  typename std::conditional<( sizeof( Lhs ) >= sizeof( Rhs ) ),
 		                            signed_integer<sizeof( Lhs ) * 8>,
@@ -117,9 +114,9 @@ namespace daw::integers {
 		explicit signed_integer( ) = default;
 
 		// Construct from an integer type and ensure value_type is large enough
-		template<typename I,
-		         std::enable_if_t<daw::is_integral_v<I>, std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE constexpr explicit signed_integer( I v ) noexcept
+		template<typename I>
+		requires daw::is_integral_v<I> //
+		  DAW_ATTRIB_INLINE constexpr explicit signed_integer( I v ) noexcept
 		  : m_private{ static_cast<value_type>( v ) } {
 			if constexpr( not sint_impl::convertible_signed_int<value_type, I> ) {
 				if( DAW_UNLIKELY( not daw::in_range<value_type>( v ) ) ) {
@@ -158,11 +155,10 @@ namespace daw::integers {
 		/// with overflow and underflow checks.
 		/// @param other Integer to convert to signed_integer
 		/// @returns A signed_integer with value of other
-		template<typename I,
-		         std::enable_if_t<daw::is_integral_v<I> and daw::is_signed_v<I>,
-		                          std::nullptr_t> = nullptr>
-		[[nodiscard]] static constexpr signed_integer
-		conversion_checked( I other ) {
+		template<typename I>
+		requires( daw::is_integral_v<I> and daw::is_signed_v<I> ) //
+		  [[nodiscard]] static constexpr signed_integer
+		  conversion_checked( I other ) {
 			if( DAW_UNLIKELY( sizeof( I ) > sizeof( value_type ) ) and
 			    DAW_UNLIKELY( not daw::in_range<value_type>( other ) ) ) {
 				DAW_UNLIKELY_BRANCH
@@ -196,19 +192,19 @@ namespace daw::integers {
 		/// @tparam I The type of the input parameter to be converted.
 		/// @param other The input value to be converted to a signed integer.
 		/// @return A `signed_integer` representing the converted value.
-		template<typename I,
-		         std::enable_if_t<daw::is_integral_v<I>, std::nullptr_t> = nullptr>
-		static constexpr signed_integer conversion_unchecked( I other ) {
+		template<typename I>
+		requires daw::is_integral_v<I> //
+		  static constexpr signed_integer conversion_unchecked( I other ) {
 			return signed_integer( static_cast<value_type>( other ) );
 		}
 
 		/// @brief Construct a signed_integer from another that has a larger range
 		/// @tparam I The type of the input parameter to be converted.
 		/// @param other The input value to be constructed from
-		template<std::size_t I,
-		         std::enable_if_t<( I > Bits ), std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE explicit constexpr signed_integer(
-		  signed_integer<I> other ) noexcept
+		template<std::size_t I>
+		requires( I > Bits ) //
+		  DAW_ATTRIB_INLINE
+		  explicit constexpr signed_integer( signed_integer<I> other ) noexcept
 		  : m_private{ static_cast<value_type>( other.value( ) ) } {
 #if DAW_DEFAULT_SIGNED_CHECKING == 0
 			if( not daw::in_range<value_type>( other.value( ) ) ) {
@@ -219,29 +215,26 @@ namespace daw::integers {
 
 		// @brief Construct a signed_integer from another signed_integer of smaller
 		// range.  No checks are needed
-		template<std::size_t I, std::enable_if_t<( I / 8 <= sizeof( value_type ) ),
-		                                         std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE constexpr signed_integer(
-		  signed_integer<I> other ) noexcept
+		template<std::size_t I>
+		requires( I / 8 <= sizeof( value_type ) ) //
+		  DAW_ATTRIB_INLINE
+		  constexpr signed_integer( signed_integer<I> other ) noexcept
 		  : m_private{ static_cast<value_type>( other.value( ) ) } {}
 
 		/// @brief Allow conversion to an arithmetic type
-		template<typename Arithmetic,
-		         std::enable_if_t<daw::is_arithmetic_v<Arithmetic>,
-		                          std::nullptr_t> = nullptr>
-		[[nodiscard]] DAW_ATTRIB_INLINE explicit constexpr
-		operator Arithmetic( ) const noexcept {
+		template<typename Arithmetic>
+		requires( daw::is_arithmetic_v<Arithmetic> ) //
+		  [[nodiscard]] DAW_ATTRIB_INLINE explicit constexpr
+		  operator Arithmetic( ) const noexcept {
 			return static_cast<Arithmetic>( value( ) );
 		}
 
 		/// @brief Allow conversion to signed_integer types that are larger in range
-		template<
-		  std::size_t I,
-		  std::enable_if_t<sint_impl::convertible_signed_int<
-		                     sint_impl::signed_integer_type_t<I>, value_type>,
-		                   std::nullptr_t> = nullptr>
-		[[nodiscard]] DAW_ATTRIB_INLINE explicit constexpr
-		operator signed_integer<I>( ) const noexcept {
+		template<std::size_t I>
+		requires( sint_impl::convertible_signed_int<
+		          sint_impl::signed_integer_type_t<I>, value_type> ) //
+		  [[nodiscard]] DAW_ATTRIB_INLINE explicit constexpr
+		  operator signed_integer<I>( ) const noexcept {
 			return signed_integer<I>( value( ) );
 		}
 
@@ -349,10 +342,10 @@ namespace daw::integers {
 
 		/// @brief Add rhs to this and return a ref this this.  Checked while in
 		/// debug
-		template<typename I,
-		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
-		                          std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE constexpr signed_integer &operator+=( I rhs ) {
+		template<typename I>
+		requires( sint_impl::convertible_signed_int<value_type, I> ) //
+		  DAW_ATTRIB_INLINE constexpr signed_integer &
+		  operator+=( I rhs ) {
 			return *this += signed_integer( rhs );
 		}
 
@@ -366,10 +359,10 @@ namespace daw::integers {
 
 		/// @brief Subtract rhs to this and return a ref this this.  Checked while
 		/// in debug
-		template<typename I,
-		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
-		                          std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE constexpr signed_integer &operator-=( I rhs ) {
+		template<typename I>
+		requires( sint_impl::convertible_signed_int<value_type, I> ) //
+		  DAW_ATTRIB_INLINE constexpr signed_integer &
+		  operator-=( I rhs ) {
 			return *this -= signed_integer( rhs );
 		}
 
@@ -427,10 +420,10 @@ namespace daw::integers {
 
 		/// @brief Multiple self with rhs and store the product in this.  Checked in
 		/// debug modes
-		template<typename I,
-		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
-		                          std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE constexpr signed_integer &operator*=( I rhs ) {
+		template<typename I>
+		requires( sint_impl::convertible_signed_int<value_type, I> ) //
+		  DAW_ATTRIB_INLINE constexpr signed_integer &
+		  operator*=( I rhs ) {
 			return *this *= signed_integer( rhs );
 		}
 
@@ -462,16 +455,39 @@ namespace daw::integers {
 			return signed_integer( sint_impl::sat_mul( value( ), rhs.value( ) ) );
 		}
 
-		DAW_ATTRIB_INLINE constexpr signed_integer &
-		operator/=( signed_integer const &rhs ) {
+		/**
+		 * Divides the current signed_integer by another
+		 * signed_integer and assigns the result to the current
+		 * signed_integer instance.
+		 *
+		 * The division is performed using debug-checked division.
+		 *
+		 * @param rhs The signed_integer instance corresponding to
+		 * the divisor.
+		 * @return A reference to the modified signed_integer
+		 * instance (result of division).
+		 */
+		DAW_ATTRIB_INLINE
+		constexpr signed_integer &operator/=( signed_integer const &rhs ) {
 			m_private.value = sint_impl::debug_checked_div( value( ), rhs.value( ) );
 			return *this;
 		}
 
-		template<typename I,
-		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
-		                          std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE constexpr signed_integer &operator/=( I rhs ) {
+		/**
+		 * Divides the current signed_integer by a compatible integer
+		 * and assigns the result to the current signed_integer instance.
+		 *
+		 * The division is performed using debug-checked division.
+		 *
+		 * @param rhs The signed_integer instance corresponding to
+		 * the divisor.
+		 * @return A reference to the modified signed_integer
+		 * instance (result of division).
+		 */
+		template<typename I>
+		requires( sint_impl::convertible_signed_int<value_type, I> ) //
+		  DAW_ATTRIB_INLINE constexpr signed_integer &
+		  operator/=( I rhs ) {
 			return *this /= signed_integer( rhs );
 		}
 
@@ -505,10 +521,10 @@ namespace daw::integers {
 			return *this;
 		}
 
-		template<typename I,
-		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
-		                          std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE constexpr signed_integer &operator%=( I rhs ) {
+		template<typename I>
+		requires( sint_impl::convertible_signed_int<value_type, I> ) //
+		  DAW_ATTRIB_INLINE constexpr signed_integer &
+		  operator%=( I rhs ) {
 			return *this %= signed_integer( rhs );
 		}
 
@@ -536,10 +552,10 @@ namespace daw::integers {
 			return *this;
 		}
 
-		template<typename I,
-		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
-		                          std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE constexpr signed_integer &operator<<=( I rhs ) {
+		template<typename I>
+		requires( sint_impl::convertible_signed_int<value_type, I> ) //
+		  DAW_ATTRIB_INLINE constexpr signed_integer &
+		  operator<<=( I rhs ) {
 			return *this <<= signed_integer( rhs );
 		}
 
@@ -561,21 +577,21 @@ namespace daw::integers {
 			} else if( n == 0 ) {
 				return *this;
 			}
-			n &= sizeof( value_type ) * CHAR_BIT - 1;
+			n &= daw::bit_count_v<value_type> - 1;
 			return signed_integer( value( ) << n.value( ) );
 		}
 
-		template<typename I,
-		         std::enable_if_t<daw::is_integral_v<I>, std::nullptr_t> = nullptr>
-		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
-		shl_overflowing( I n ) const {
+		template<typename I>
+		requires( daw::is_integral_v<I> ) //
+		  [[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		  shl_overflowing( I n ) const {
 			if( n < 0 ) {
 				on_signed_integer_overflow( );
 				return *this;
 			} else if( n == 0 ) {
 				return *this;
 			}
-			n &= sizeof( value_type ) * CHAR_BIT - 1;
+			n &= daw::bit_count_v<value_type> - 1;
 			return signed_integer( value( ) << n );
 		}
 
@@ -585,10 +601,10 @@ namespace daw::integers {
 			return *this;
 		}
 
-		template<typename I,
-		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
-		                          std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE constexpr signed_integer &operator>>=( I rhs ) {
+		template<typename I>
+		requires( sint_impl::convertible_signed_int<value_type, I> ) //
+		  DAW_ATTRIB_INLINE constexpr signed_integer &
+		  operator>>=( I rhs ) {
 			return *this >>= signed_integer( rhs );
 		}
 
@@ -610,34 +626,34 @@ namespace daw::integers {
 			} else if( n == 0 ) {
 				return *this;
 			}
-			n &= sizeof( value_type ) * CHAR_BIT - 1;
+			n &= daw::bit_count_v<value_type> - 1;
 			return signed_integer( value( ) >> n.value( ) );
 		}
 
-		template<typename I,
-		         std::enable_if_t<daw::is_integral_v<I>, std::nullptr_t> = nullptr>
-		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
-		shr_overflowing( I n ) const {
+		template<typename I>
+		requires( daw::is_integral_v<I> ) //
+		  [[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		  shr_overflowing( I n ) const {
 			if( n < 0 ) {
 				on_signed_integer_overflow( );
 				return *this;
 			} else if( n == 0 ) {
 				return *this;
 			}
-			n &= sizeof( value_type ) * CHAR_BIT - 1;
+			n &= daw::bit_count_v<value_type> - 1;
 			return signed_integer( value( ) >> n );
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		rotate_left( std::size_t n ) const {
 			return shl_overflowing( n ) |
-			       shr_overflowing( sizeof( value_type ) * CHAR_BIT - n );
+			       shr_overflowing( daw::bit_count_v<value_type> - n );
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		rotate_right( std::size_t n ) const {
 			return shr_overflowing( n ) |
-			       shl_overflowing( sizeof( value_type ) * CHAR_BIT - n );
+			       shl_overflowing( daw::bit_count_v<value_type> - n );
 		}
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
@@ -646,10 +662,10 @@ namespace daw::integers {
 			return *this;
 		}
 
-		template<typename I,
-		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
-		                          std::nullptr_t> = nullptr>
-		DAW_ATTRIB_INLINE constexpr signed_integer &operator|=( I rhs ) {
+		template<typename I>
+		requires( sint_impl::convertible_signed_int<value_type, I> ) //
+		  DAW_ATTRIB_INLINE constexpr signed_integer &
+		  operator|=( I rhs ) {
 			m_private.value |= static_cast<value_type>( rhs );
 			return *this;
 		}
@@ -660,9 +676,8 @@ namespace daw::integers {
 			return *this;
 		}
 
-		template<typename I,
-		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
-		                          std::nullptr_t> = nullptr>
+		template<typename I>
+		requires( sint_impl::convertible_signed_int<value_type, I> ) //
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator&=( I rhs ) {
 			m_private.value &= static_cast<value_type>( rhs );
 			return *this;
@@ -674,9 +689,8 @@ namespace daw::integers {
 			return *this;
 		}
 
-		template<typename I,
-		         std::enable_if_t<sint_impl::convertible_signed_int<value_type, I>,
-		                          std::nullptr_t> = nullptr>
+		template<typename I>
+		requires( sint_impl::convertible_signed_int<value_type, I> ) //
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator^=( I rhs ) {
 			m_private.value ^= static_cast<value_type>( rhs );
 			return *this;
