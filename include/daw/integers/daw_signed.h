@@ -678,7 +678,8 @@ namespace daw::integers {
 
 		template<typename I>
 		requires( sint_impl::convertible_signed_int<value_type, I> ) //
-		DAW_ATTRIB_INLINE constexpr signed_integer &operator&=( I rhs ) {
+		  DAW_ATTRIB_INLINE constexpr signed_integer &
+		  operator&=( I rhs ) {
 			m_private.value &= static_cast<value_type>( rhs );
 			return *this;
 		}
@@ -691,7 +692,8 @@ namespace daw::integers {
 
 		template<typename I>
 		requires( sint_impl::convertible_signed_int<value_type, I> ) //
-		DAW_ATTRIB_INLINE constexpr signed_integer &operator^=( I rhs ) {
+		  DAW_ATTRIB_INLINE constexpr signed_integer &
+		  operator^=( I rhs ) {
 			m_private.value ^= static_cast<value_type>( rhs );
 			return *this;
 		}
@@ -1181,7 +1183,7 @@ namespace daw::integers {
 
 	namespace literals {
 		[[nodiscard]] DAW_CONSTEVAL signed_integer<8>
-		operator""_i8( unsigned long long v ) noexcept {
+		operator""_i8( unsigned long long v ) {
 			using int_t = std::int8_t;
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
@@ -1190,7 +1192,7 @@ namespace daw::integers {
 		}
 
 		[[nodiscard]] DAW_CONSTEVAL signed_integer<16>
-		operator""_i16( unsigned long long v ) noexcept {
+		operator""_i16( unsigned long long v ) {
 			using int_t = std::int16_t;
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
@@ -1199,7 +1201,7 @@ namespace daw::integers {
 		}
 
 		[[nodiscard]] DAW_CONSTEVAL signed_integer<32>
-		operator""_i32( unsigned long long v ) noexcept {
+		operator""_i32( unsigned long long v ) {
 			using int_t = std::int32_t;
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
@@ -1208,7 +1210,7 @@ namespace daw::integers {
 		}
 
 		[[nodiscard]] DAW_CONSTEVAL signed_integer<64>
-		operator""_i64( unsigned long long v ) noexcept {
+		operator""_i64( unsigned long long v ) {
 			using int_t = std::int64_t;
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
