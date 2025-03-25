@@ -731,14 +731,76 @@ namespace daw::integers {
 			return daw::cxmath::count_trailing_zeros(
 			  daw::cxmath::to_unsigned( value( ) ) );
 		}
+
+	private:
+		/// @brief Perform exponentiation using an iterative approach that uses
+		/// log2(pow) multiplies. This function takes an integer `i` and raises it
+		/// to the power `pow`
+		/// @param i base
+		/// @param pow exponent to raise base to
+		/// @param multiplier Function that does the multiplication
+		DAW_ATTRIB_FLATINLINE
+		static constexpr signed_integer pow_impl( signed_integer i, unsigned pow,
+		                                          auto &&multiplier ) {
+			signed_integer result = 1; // Initialize the result to 1
+			while( pow != 0 ) {        // Loop until the exponent becomes zero
+				if( ( pow & 1 ) == 1 ) { // If the least significant bit of pow is set
+					result =
+					  multiplier( result, i ); // Multiply the result by the current base
+				}
+				i = multiplier( i, i ); // Square the base
+				pow /= 2U;              // Halve the exponent (right shift)
+			}
+			return result; // Return the final result
+		}
+
+	public:
+		/// @brief compute pow using current value as base and pow as exponent.
+		/// Checked in debug mode
+		[[nodiscard]] constexpr signed_integer pow( unsigned pow ) const {
+			return pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
+				return lhs * rhs;
+			} );
+		}
+
+		/// @brief compute pow using current value as base and pow as exponent.
+		/// Overflow is never checked
+		[[nodiscard]] constexpr signed_integer pow_uncheck( unsigned pow ) const {
+			return pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
+				return lhs.mul_uncheck( rhs );
+			} );
+		}
+
+		/// @brief compute pow using current value as base and pow as exponent.
+		/// Overflow is checked and handler called if encountered
+		[[nodiscard]] constexpr signed_integer pow_checked( unsigned pow ) const {
+			return pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
+				return lhs.mul_checked( rhs );
+			} );
+		}
+
+		/// @brief compute pow using current value as base and pow as exponent.
+		/// Value is wrapped when overflow is encountered
+		[[nodiscard]] constexpr signed_integer pow_wrapped( unsigned pow ) const {
+			return pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
+				return lhs.mul_wrapped( rhs );
+			} );
+		}
+
+		/// @brief compute pow using current value as base and pow as exponent.
+		/// Value is saturated if overflow is encountered
+		[[nodiscard]] constexpr signed_integer pow_saturated( unsigned pow ) const {
+			return pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
+				return lhs.mul_saturated( rhs );
+			} );
+		}
 	};
 
-	template<typename I,
-	         typename U = std::enable_if_t<
-	           daw::traits::is_one_of_v<daw::make_signed_t<I>, std::int8_t,
-	                                    std::int16_t, std::int32_t, std::int64_t>,
-	           daw::make_signed_t<I>>>
-	signed_integer( I ) -> signed_integer<sizeof( U ) * 8>;
+	template<typename I>
+	requires(
+	  daw::traits::is_one_of_v<daw::make_signed_t<I>, std::int8_t, std::int16_t,
+	                           std::int32_t, std::int64_t> ) //
+	  signed_integer( I ) -> signed_integer<sizeof( I ) * 8>;
 
 	// Addition
 	template<std::size_t Lhs, std::size_t Rhs>
