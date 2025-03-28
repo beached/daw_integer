@@ -444,8 +444,8 @@ namespace daw::integers {
 		/// @brief Perform unchecked multiplication with rhs and return a new
 		/// signed_integer
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
-		mul_uncheck( signed_integer const &rhs ) const {
-			return value( ) * rhs.value( );
+		mul_unchecked( signed_integer const &rhs ) const {
+			return signed_integer( value( ) * rhs.value( ) );
 		}
 
 		/// @brief Perform saturated multiplication with rhs and return a new
@@ -498,7 +498,7 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		div_unchecked( signed_integer const &rhs ) const {
-			return value( ) / rhs.value( );
+			return signed_integer( value( ) / rhs.value( ) );
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
@@ -765,9 +765,9 @@ namespace daw::integers {
 
 		/// @brief compute pow using current value as base and pow as exponent.
 		/// Overflow is never checked
-		[[nodiscard]] constexpr signed_integer pow_uncheck( unsigned pow ) const {
+		[[nodiscard]] constexpr signed_integer pow_unchecked( unsigned pow ) const {
 			return pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
-				return lhs.mul_uncheck( rhs );
+				return lhs.mul_unchecked( rhs );
 			} );
 		}
 

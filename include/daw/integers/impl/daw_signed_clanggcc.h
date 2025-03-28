@@ -10,7 +10,7 @@
 
 #if defined( __clang__ ) or defined( __GNUC__ )
 
-#include "daw_signed_error_handling.h"
+#include "daw/integers/impl/daw_signed_error_handling.h"
 
 #include <daw/daw_arith_traits.h>
 #include <daw/daw_attributes.h>
@@ -18,6 +18,7 @@
 #include <daw/daw_consteval.h>
 #include <daw/daw_cpp_feature_check.h>
 #include <daw/daw_int_cmp.h>
+#include <daw/daw_is_constant_evaluated.h>
 #include <daw/daw_likely.h>
 #include <daw/traits/daw_traits_is_one_of.h>
 
@@ -107,38 +108,43 @@ namespace daw::integers::sint_impl {
 		template<typename T,
 		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
-			if( DAW_UNLIKELY( rhs == 0 ) ) {
-				on_signed_integer_div_by_zero( );
-				return lhs;
-			}
-			if constexpr( sizeof( T ) == 8 ) {
-#if defined( DAW_HAS_INT128 )
-				auto const l = static_cast<daw::int128_t>( lhs );
-				auto const r = static_cast<daw::int128_t>( rhs );
-				auto const res128 = l / r;
-				auto const res = static_cast<T>( res128 );
-				if( DAW_UNLIKELY( res != res128 ) ) {
-					on_signed_integer_overflow( );
-				}
-				return res;
-#else
-				if( DAW_UNLIKELY( rhs == -1 and
-				                  lhs == daw::numeric_limits<T>::min( ) ) ) {
-					on_signed_integer_overflow( );
-					return daw::numeric_limits<T>::max( );
-				}
+			DAW_IF_CONSTEVAL {
 				return lhs / rhs;
-#endif
-			} else {
-				static_assert( sizeof( T ) < 8 );
-				auto const l = static_cast<std::int64_t>( lhs );
-				auto const r = static_cast<std::int64_t>( rhs );
-				auto const res64 = l / r;
-				auto const res = static_cast<T>( res64 );
-				if( DAW_UNLIKELY( res != res64 ) ) {
-					on_signed_integer_overflow( );
+			}
+			else {
+				if( DAW_UNLIKELY( rhs == 0 ) ) {
+					on_signed_integer_div_by_zero( );
+					return lhs;
 				}
-				return res;
+				if constexpr( sizeof( T ) == 8 ) {
+#if defined( DAW_HAS_INT128 )
+					auto const l = static_cast<daw::int128_t>( lhs );
+					auto const r = static_cast<daw::int128_t>( rhs );
+					auto const res128 = l / r;
+					auto const res = static_cast<T>( res128 );
+					if( DAW_UNLIKELY( res != res128 ) ) {
+						on_signed_integer_overflow( );
+					}
+					return res;
+#else
+					if( DAW_UNLIKELY( rhs == -1 and
+					                  lhs == daw::numeric_limits<T>::min( ) ) ) {
+						on_signed_integer_overflow( );
+						return daw::numeric_limits<T>::max( );
+					}
+					return lhs / rhs;
+#endif
+				} else {
+					static_assert( sizeof( T ) < 8 );
+					auto const l = static_cast<std::int64_t>( lhs );
+					auto const r = static_cast<std::int64_t>( rhs );
+					auto const res64 = l / r;
+					auto const res = static_cast<T>( res64 );
+					if( DAW_UNLIKELY( res != res64 ) ) {
+						on_signed_integer_overflow( );
+					}
+					return res;
+				}
 			}
 		}
 	} checked_div{ };
@@ -149,13 +155,19 @@ namespace daw::integers::sint_impl {
 		template<typename T,
 		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
-			if( DAW_UNLIKELY( rhs == 0 ) ) {
-				on_signed_integer_div_by_zero( );
+			DAW_IF_CONSTEVAL {
+				return lhs % rhs;
 			}
-			if( lhs == daw::numeric_limits<T>::min( ) and rhs.value( ) == T{ -1 } ) {
-				on_signed_integer_overflow( );
+			else {
+				if( DAW_UNLIKELY( rhs == 0 ) ) {
+					on_signed_integer_div_by_zero( );
+				}
+				if( lhs == daw::numeric_limits<T>::min( ) and
+				    rhs.value( ) == T{ -1 } ) {
+					on_signed_integer_overflow( );
+				}
+				return lhs % rhs;
 			}
-			return lhs % rhs;
 		}
 	} checked_rem{ };
 
@@ -165,14 +177,18 @@ namespace daw::integers::sint_impl {
 		template<typename T,
 		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
-			if( DAW_UNLIKELY( rhs == 0 ) ) {
-				on_signed_integer_overflow( );
-				return lhs;
-			} else if( DAW_UNLIKELY( rhs >= daw::bit_count_v<T> ) ) {
-				on_signed_integer_overflow( );
-				return lhs << ( daw::bit_count_v<T> - 1 );
+			DAW_IF_CONSTEVAL {
+				return lhs << rhs;
+			} else {
+				if( DAW_UNLIKELY( rhs == 0 ) ) {
+					on_signed_integer_overflow( );
+					return lhs;
+				} else if( DAW_UNLIKELY( rhs >= daw::bit_count_v<T> ) ) {
+					on_signed_integer_overflow( );
+					return lhs << ( daw::bit_count_v<T> - 1 );
+				}
+				return lhs << rhs;
 			}
-			return lhs << rhs;
 		}
 	} checked_shl{ };
 
@@ -182,14 +198,18 @@ namespace daw::integers::sint_impl {
 		template<typename T,
 		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
-			if( DAW_UNLIKELY( rhs == 0 ) ) {
-				on_signed_integer_overflow( );
-				return lhs;
-			} else if( DAW_UNLIKELY( rhs >= daw::bit_count_v<T> ) ) {
-				on_signed_integer_overflow( );
-				return lhs >> ( daw::bit_count_v<T> - 1 );
+			DAW_IF_CONSTEVAL {
+				return lhs >> rhs;
+			} else {
+				if( DAW_UNLIKELY( rhs == 0 ) ) {
+					on_signed_integer_overflow( );
+					return lhs;
+				} else if( DAW_UNLIKELY( rhs >= daw::bit_count_v<T> ) ) {
+					on_signed_integer_overflow( );
+					return lhs >> ( daw::bit_count_v<T> - 1 );
+				}
+				return lhs >> rhs;
 			}
-			return lhs >> rhs;
 		}
 	} checked_shr{ };
 } // namespace daw::integers::sint_impl

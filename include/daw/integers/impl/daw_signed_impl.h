@@ -8,12 +8,13 @@
 
 #pragma once
 
-#include "daw_signed_clanggcc.h"
-#include "daw_signed_msvc.h"
+#include "daw/integers/impl/daw_signed_clanggcc.h"
+#include "daw/integers/impl/daw_signed_msvc.h"
 
 #include <daw/daw_cpp_feature_check.h>
 #include <daw/daw_int_cmp.h>
 #include <daw/daw_integer_reverse.h>
+#include <daw/daw_is_constant_evaluated.h>
 #include <daw/daw_traits.h>
 
 #include <cassert>
@@ -59,12 +60,17 @@ namespace daw::integers::sint_impl {
 		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs, T rhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
-			auto result = T{ };
-			if( DAW_UNLIKELY( wrapping_add( lhs, rhs, result ) ) ) {
-				DAW_UNLIKELY_BRANCH
-				on_signed_integer_overflow( );
+			DAW_IF_CONSTEVAL {
+				return lhs + rhs;
 			}
-			return result;
+			else {
+				auto result = T{ };
+				if( DAW_UNLIKELY( wrapping_add( lhs, rhs, result ) ) ) {
+					DAW_UNLIKELY_BRANCH
+					on_signed_integer_overflow( );
+				}
+				return result;
+			}
 		}
 	} checked_add{ };
 
@@ -84,12 +90,17 @@ namespace daw::integers::sint_impl {
 		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs, T rhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
-			auto result = T{ };
-			if( DAW_UNLIKELY( wrapping_sub( lhs, rhs, result ) ) ) {
-				DAW_UNLIKELY_BRANCH
-				on_signed_integer_overflow( );
+			DAW_IF_CONSTEVAL {
+				return lhs - rhs;
 			}
-			return result;
+			else {
+				auto result = T{ };
+				if( DAW_UNLIKELY( wrapping_sub( lhs, rhs, result ) ) ) {
+					DAW_UNLIKELY_BRANCH
+					on_signed_integer_overflow( );
+				}
+				return result;
+			}
 		}
 	} checked_sub{ };
 
@@ -109,12 +120,16 @@ namespace daw::integers::sint_impl {
 		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs, T rhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
-			auto result = T{ };
-			if( DAW_UNLIKELY( wrapping_mul( lhs, rhs, result ) ) ) {
-				DAW_UNLIKELY_BRANCH
-				on_signed_integer_overflow( );
+			DAW_IF_CONSTEVAL {
+				return lhs * rhs;
+			} else {
+				auto result = T{ };
+				if( DAW_UNLIKELY( wrapping_mul( lhs, rhs, result ) ) ) {
+					DAW_UNLIKELY_BRANCH
+					on_signed_integer_overflow( );
+				}
+				return result;
 			}
-			return result;
 		}
 	} checked_mul{ };
 
