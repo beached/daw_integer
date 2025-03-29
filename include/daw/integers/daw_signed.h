@@ -73,6 +73,21 @@ namespace daw::integers {
 		  typename std::conditional<( sizeof( Lhs ) >= sizeof( Rhs ) ),
 		                            signed_integer<sizeof( Lhs ) * 8>,
 		                            signed_integer<sizeof( Rhs ) * 8>>::type;
+
+		template<std::size_t Bits>
+		DAW_ATTRIB_FLATINLINE static constexpr signed_integer<Bits>
+		pow_impl( signed_integer<Bits> i, unsigned pow, auto &&multiplier ) {
+			signed_integer<Bits> result = 1; // Initialize the result to 1
+			while( pow != 0 ) {              // Loop until the exponent becomes zero
+				if( ( pow & 1 ) == 1 ) { // If the least significant bit of pow is set
+					result =
+					  multiplier( result, i ); // Multiply the result by the current base
+				}
+				i = multiplier( i, i ); // Square the base
+				pow /= 2U;              // Halve the exponent (right shift)
+			}
+			return result; // Return the final result
+		}
 	} // namespace sint_impl
 
 	using i8 = signed_integer<8>;
@@ -733,32 +748,11 @@ namespace daw::integers {
 		}
 
 	private:
-		/// @brief Perform exponentiation using an iterative approach that uses
-		/// log2(pow) multiplies. This function takes an integer `i` and raises it
-		/// to the power `pow`
-		/// @param i base
-		/// @param pow exponent to raise base to
-		/// @param multiplier Function that does the multiplication
-		DAW_ATTRIB_FLATINLINE
-		static constexpr signed_integer pow_impl( signed_integer i, unsigned pow,
-		                                          auto &&multiplier ) {
-			signed_integer result = 1; // Initialize the result to 1
-			while( pow != 0 ) {        // Loop until the exponent becomes zero
-				if( ( pow & 1 ) == 1 ) { // If the least significant bit of pow is set
-					result =
-					  multiplier( result, i ); // Multiply the result by the current base
-				}
-				i = multiplier( i, i ); // Square the base
-				pow /= 2U;              // Halve the exponent (right shift)
-			}
-			return result; // Return the final result
-		}
-
 	public:
 		/// @brief compute pow using current value as base and pow as exponent.
 		/// Checked in debug mode
 		[[nodiscard]] constexpr signed_integer pow( unsigned pow ) const {
-			return pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
+			return sint_impl::pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
 				return lhs * rhs;
 			} );
 		}
@@ -766,7 +760,7 @@ namespace daw::integers {
 		/// @brief compute pow using current value as base and pow as exponent.
 		/// Overflow is never checked
 		[[nodiscard]] constexpr signed_integer pow_unchecked( unsigned pow ) const {
-			return pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
+			return sint_impl::pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
 				return lhs.mul_unchecked( rhs );
 			} );
 		}
@@ -774,7 +768,7 @@ namespace daw::integers {
 		/// @brief compute pow using current value as base and pow as exponent.
 		/// Overflow is checked and handler called if encountered
 		[[nodiscard]] constexpr signed_integer pow_checked( unsigned pow ) const {
-			return pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
+			return sint_impl::pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
 				return lhs.mul_checked( rhs );
 			} );
 		}
@@ -782,7 +776,7 @@ namespace daw::integers {
 		/// @brief compute pow using current value as base and pow as exponent.
 		/// Value is wrapped when overflow is encountered
 		[[nodiscard]] constexpr signed_integer pow_wrapped( unsigned pow ) const {
-			return pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
+			return sint_impl::pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
 				return lhs.mul_wrapped( rhs );
 			} );
 		}
@@ -790,7 +784,7 @@ namespace daw::integers {
 		/// @brief compute pow using current value as base and pow as exponent.
 		/// Value is saturated if overflow is encountered
 		[[nodiscard]] constexpr signed_integer pow_saturated( unsigned pow ) const {
-			return pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
+			return sint_impl::pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
 				return lhs.mul_saturated( rhs );
 			} );
 		}
