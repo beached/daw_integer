@@ -28,7 +28,7 @@ namespace daw::integers::sint_impl {
 		constexpr auto f = []( unsigned char c, size_t n ) {
 			return static_cast<Unsigned>( c ) << ( 8U * n );
 		};
-		auto result = Unsigned{ ( f( ptr[Is], Is ) | ... ) };
+		auto result = static_cast<Unsigned>( ( f( ptr[Is], Is ) | ... ) );
 		return result;
 	}
 
@@ -39,7 +39,8 @@ namespace daw::integers::sint_impl {
 		constexpr auto f = []( unsigned char c, size_t n ) {
 			return static_cast<Unsigned>( c ) << ( 8U * n );
 		};
-		auto result = Unsigned{ ( f( ptr[StartVal - Is], Is ) | ... ) };
+		auto result =
+		  static_cast<Unsigned>( ( f( ptr[StartVal - Is], Is ) | ... ) );
 		return result;
 	}
 
@@ -122,7 +123,8 @@ namespace daw::integers::sint_impl {
 		operator( )( T lhs, T rhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
 			DAW_IF_CONSTEVAL {
 				return lhs * rhs;
-			} else {
+			}
+			else {
 				auto result = T{ };
 				if( DAW_UNLIKELY( wrapping_mul( lhs, rhs, result ) ) ) {
 					DAW_UNLIKELY_BRANCH

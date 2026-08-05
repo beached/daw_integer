@@ -162,8 +162,7 @@ namespace daw::integers::sint_impl {
 				if( DAW_UNLIKELY( rhs == 0 ) ) {
 					on_signed_integer_div_by_zero( );
 				}
-				if( lhs == daw::numeric_limits<T>::min( ) and
-				    rhs.value( ) == T{ -1 } ) {
+				if( lhs == daw::numeric_limits<T>::min( ) and rhs == T{ -1 } ) {
 					on_signed_integer_overflow( );
 				}
 				return lhs % rhs;
@@ -179,15 +178,18 @@ namespace daw::integers::sint_impl {
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
 			DAW_IF_CONSTEVAL {
 				return lhs << rhs;
-			} else {
-				if( DAW_UNLIKELY( rhs == 0 ) ) {
+			}
+			else {
+				if( DAW_UNLIKELY( rhs < 0 ) ) {
 					on_signed_integer_overflow( );
 					return lhs;
-				} else if( DAW_UNLIKELY( rhs >= daw::bit_count_v<T> ) ) {
+				}
+				if( DAW_UNLIKELY( static_cast<std::size_t>( rhs ) >=
+				                  daw::bit_count_v<T> ) ) {
 					on_signed_integer_overflow( );
 					return lhs << ( daw::bit_count_v<T> - 1 );
 				}
-				return lhs << rhs;
+				return lhs << static_cast<std::size_t>( rhs );
 			}
 		}
 	} checked_shl{ };
@@ -200,15 +202,18 @@ namespace daw::integers::sint_impl {
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
 			DAW_IF_CONSTEVAL {
 				return lhs >> rhs;
-			} else {
-				if( DAW_UNLIKELY( rhs == 0 ) ) {
+			}
+			else {
+				if( DAW_UNLIKELY( rhs < 0 ) ) {
 					on_signed_integer_overflow( );
 					return lhs;
-				} else if( DAW_UNLIKELY( rhs >= daw::bit_count_v<T> ) ) {
+				}
+				if( DAW_UNLIKELY( static_cast<std::size_t>( rhs ) >=
+				                  daw::bit_count_v<T> ) ) {
 					on_signed_integer_overflow( );
 					return lhs >> ( daw::bit_count_v<T> - 1 );
 				}
-				return lhs >> rhs;
+				return lhs >> static_cast<std::size_t>( rhs );
 			}
 		}
 	} checked_shr{ };
