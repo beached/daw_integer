@@ -54,6 +54,10 @@ namespace daw::integers {
 
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
+	/// @warning A handler that returns allows the failed operation to continue.
+	/// When that operation has no defined result, returning indicates that the
+	/// caller accepts any resulting undefined behavior. Throw or terminate from
+	/// the handler to prevent continuation.
 	DAW_ATTRIB_NOINLINE inline void register_signed_overflow_handler(
 	  signed_int_error_handler_t handler = nullptr,
 	  void *data = nullptr ) noexcept {
@@ -63,6 +67,10 @@ namespace daw::integers {
 
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
+	/// @warning A handler that returns allows the failed operation to continue.
+	/// When that operation has no defined result, returning indicates that the
+	/// caller accepts any resulting undefined behavior. Throw or terminate from
+	/// the handler to prevent continuation.
 	template<typename Func,
 	         std::enable_if_t<std::is_class_v<Func> and
 	                            std::is_invocable_v<Func, SignedIntegerErrorType>,
@@ -87,6 +95,10 @@ namespace daw::integers {
 
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
+	/// @warning A handler that returns allows the failed operation to continue.
+	/// When that operation has no defined result, returning indicates that the
+	/// caller accepts any resulting undefined behavior. Throw or terminate from
+	/// the handler to prevent continuation.
 	DAW_ATTRIB_NOINLINE inline void register_signed_div_by_zero_handler(
 	  signed_int_error_handler_t handler = nullptr,
 	  void *data = nullptr ) noexcept {
@@ -96,6 +108,10 @@ namespace daw::integers {
 
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
+	/// @warning A handler that returns allows the failed operation to continue.
+	/// When that operation has no defined result, returning indicates that the
+	/// caller accepts any resulting undefined behavior. Throw or terminate from
+	/// the handler to prevent continuation.
 	template<typename Func,
 	         std::enable_if_t<std::is_class_v<Func> and
 	                            std::is_invocable_v<Func, SignedIntegerErrorType>,

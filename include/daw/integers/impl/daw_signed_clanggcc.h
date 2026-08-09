@@ -177,7 +177,7 @@ namespace daw::integers::sint_impl {
 		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
 			DAW_IF_CONSTEVAL {
-				return lhs << rhs;
+				return static_cast<T>( lhs << rhs );
 			}
 			else {
 				if( DAW_UNLIKELY( rhs < 0 ) ) {
@@ -187,9 +187,9 @@ namespace daw::integers::sint_impl {
 				if( DAW_UNLIKELY( static_cast<std::size_t>( rhs ) >=
 				                  daw::bit_count_v<T> ) ) {
 					on_signed_integer_overflow( );
-					return lhs << ( daw::bit_count_v<T> - 1 );
+					return static_cast<T>( lhs << ( daw::bit_count_v<T> - 1 ) );
 				}
-				return lhs << static_cast<std::size_t>( rhs );
+				return static_cast<T>( lhs << static_cast<std::size_t>( rhs ) );
 			}
 		}
 	} checked_shl{ };
@@ -201,7 +201,7 @@ namespace daw::integers::sint_impl {
 		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
 			DAW_IF_CONSTEVAL {
-				return lhs >> rhs;
+				return static_cast<T>( lhs >> rhs );
 			}
 			else {
 				if( DAW_UNLIKELY( rhs < 0 ) ) {
@@ -211,9 +211,9 @@ namespace daw::integers::sint_impl {
 				if( DAW_UNLIKELY( static_cast<std::size_t>( rhs ) >=
 				                  daw::bit_count_v<T> ) ) {
 					on_signed_integer_overflow( );
-					return lhs >> ( daw::bit_count_v<T> - 1 );
+					return static_cast<T>( lhs >> ( daw::bit_count_v<T> - 1 ) );
 				}
-				return lhs >> static_cast<std::size_t>( rhs );
+				return static_cast<T>( lhs >> static_cast<std::size_t>( rhs ) );
 			}
 		}
 	} checked_shr{ };

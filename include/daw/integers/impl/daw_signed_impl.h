@@ -294,13 +294,7 @@ namespace daw::integers::sint_impl {
 		                          std::nullptr_t> = nullptr>
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
-			if constexpr( sizeof( T ) < 4 ) {
-				return static_cast<T>( -static_cast<std::int32_t>( lhs ) );
-			} else if constexpr( sizeof( T ) < 8 ) {
-				return static_cast<T>( -static_cast<std::int64_t>( lhs ) );
-			} else {
-				return checked_mul( lhs, T{ -1 } );
-			}
+			return checked_mul( lhs, T{ -1 } );
 		}
 	} checked_neg{ };
 

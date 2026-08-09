@@ -84,7 +84,7 @@ namespace daw::integers::sint_impl {
 
 		DAW_ATTRIB_INLINE constexpr bool
 		wrapping_sub( std::int16_t l, std::int16_t r, std::int16_t &res ) noexcept {
-			auto const res32 = l + r;
+			auto const res32 = l - r;
 			res = static_cast<std::int16_t>( res32 );
 			if( r == 0 ) {
 				return false;
@@ -100,7 +100,7 @@ namespace daw::integers::sint_impl {
 		wrapping_sub( std::int32_t l, std::int32_t r, std::int32_t &res ) noexcept {
 			auto const l64 = l;
 			auto const r64 = r;
-			auto const res64 = l64 + r64;
+			auto const res64 = l64 - r64;
 			res = static_cast<std::int32_t>( res64 );
 			if( r == 0 ) {
 				return false;
@@ -234,7 +234,7 @@ namespace daw::integers::sint_impl {
 			         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
 			DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
 				DAW_IF_CONSTEVAL {
-					return lhs >> rhs
+					return lhs >> rhs;
 				}
 				else {
 					if( DAW_UNLIKELY( rhs == 0 ) ) {

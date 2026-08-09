@@ -78,9 +78,9 @@ namespace daw::integers {
 		DAW_ATTRIB_FLATINLINE static constexpr signed_integer<Bits>
 		pow_impl( signed_integer<Bits> i, unsigned pow, auto &&multiplier ) {
 			using si_t = signed_integer<Bits>;
-			auto result = si_t{ 1 };   // Initialize the result to 1
+			auto result = si_t{ 1 }; // Initialize the result to 1
 			if( pow == 0 ) {
-				return si_t{1};
+				return si_t{ 1 };
 			}
 			if( pow == 1 ) {
 				return i;
@@ -138,7 +138,7 @@ namespace daw::integers {
 		// Construct from an integer type and ensure value_type is large enough
 		template<typename I>
 		requires daw::is_integral_v<I> //
-		  DAW_ATTRIB_INLINE constexpr explicit signed_integer( I v ) noexcept
+		  DAW_ATTRIB_INLINE constexpr explicit signed_integer( I v )
 		  : m_private{ static_cast<value_type>( v ) } {
 			if constexpr( not sint_impl::convertible_signed_int<value_type, I> ) {
 				if( DAW_UNLIKELY( not daw::in_range<value_type>( v ) ) ) {
@@ -226,7 +226,7 @@ namespace daw::integers {
 		template<std::size_t I>
 		requires( I > Bits ) //
 		  DAW_ATTRIB_INLINE
-		  explicit constexpr signed_integer( signed_integer<I> other ) noexcept
+		  explicit constexpr signed_integer( signed_integer<I> other )
 		  : m_private{ static_cast<value_type>( other.value( ) ) } {
 #if DAW_DEFAULT_SIGNED_CHECKING == 0
 			if( not daw::in_range<value_type>( other.value( ) ) ) {
@@ -552,7 +552,7 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		rem_unchecked( signed_integer const &rhs ) const {
-			return value( ) % rhs.value( );
+			return signed_integer{ value( ) % rhs.value( ) };
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
@@ -583,7 +583,7 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		shl_unchecked( signed_integer const &rhs ) const {
-			return value( ) << rhs.value( );
+			return signed_integer{ value( ) << rhs.value( ) };
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
@@ -631,7 +631,7 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		shr_unchecked( signed_integer const &rhs ) const {
-			return value( ) >> rhs.value( );
+			return signed_integer{ value( ) >> rhs.value( ) };
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
@@ -686,7 +686,7 @@ namespace daw::integers {
 		}
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
-		operator&=( signed_integer const &rhs ) const noexcept {
+		operator&=( signed_integer const &rhs ) noexcept {
 			m_private.value &= rhs.value( );
 			return *this;
 		}
@@ -699,7 +699,7 @@ namespace daw::integers {
 		}
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
-		operator^=( signed_integer const &rhs ) const noexcept {
+		operator^=( signed_integer const &rhs ) noexcept {
 			m_private.value ^= rhs.value( );
 			return *this;
 		}
