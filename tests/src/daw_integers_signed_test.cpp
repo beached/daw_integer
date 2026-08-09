@@ -91,8 +91,8 @@ static_assert( 10_i16 / 3_i8 == 3_i16 );
 
 template<typename Integer>
 void test_arithmetic_regressions( bool &has_overflow ) {
-	static_assert( std::is_same_v<decltype( Integer( 10 ) - Integer( 3 ) ),
-	                              Integer> );
+	static_assert(
+	  std::is_same_v<decltype( Integer( 10 ) - Integer( 3 ) ), Integer> );
 	daw_ensure( Integer( 10 ) - Integer( 3 ) == Integer( 7 ) );
 	daw_ensure( Integer( -10 ) - Integer( -3 ) == Integer( -7 ) );
 
@@ -107,8 +107,10 @@ void test_arithmetic_regressions( bool &has_overflow ) {
 
 	daw_ensure( Integer::max( ).add_wrapped( Integer( 1 ) ) == Integer::min( ) );
 	daw_ensure( Integer::min( ).sub_wrapped( Integer( 1 ) ) == Integer::max( ) );
-	daw_ensure( Integer::max( ).add_saturated( Integer( 1 ) ) == Integer::max( ) );
-	daw_ensure( Integer::min( ).sub_saturated( Integer( 1 ) ) == Integer::min( ) );
+	daw_ensure( Integer::max( ).add_saturated( Integer( 1 ) ) ==
+	            Integer::max( ) );
+	daw_ensure( Integer::min( ).sub_saturated( Integer( 1 ) ) ==
+	            Integer::min( ) );
 	daw_ensure( Integer::min( ).mul_saturated( Integer( -1 ) ) ==
 	            Integer::max( ) );
 	daw_ensure( Integer::min( ).div_saturated( Integer( -1 ) ) ==
@@ -554,6 +556,13 @@ int main( ) try {
 	               daw::i64::conversion_unchecked( 0x5555'5555'5555'5555ULL ) );
 	static_assert( daw::i64::conversion_unchecked( 0x8000'0000'0000'0000ULL )
 	                 .reverse_bits( ) == daw::i64::conversion_unchecked( 1ULL ) );
+	static_assert( ( -1_i32 ).shl_checked( 1_i32 ) == -2_i32 );
+
+	static_assert( ( -8_i32 ).shr_checked( 1_i32 ) == -4_i32 );
+
+	static_assert( ( -1_i8 ).shl_checked( 7_i8 ) == daw::i8::min( ) );
+
+	static_assert( daw::i8::min( ).shr_checked( 7_i8 ) == -1_i8 );
 } catch( ... ) {
 	std::cerr << "Unexpected exception thrown\n" << std::flush;
 	throw;
