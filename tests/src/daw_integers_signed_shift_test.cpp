@@ -13,11 +13,8 @@ using namespace daw::integers::literals;
 
 static_assert( ( 3_i32 ).shl_checked( 0_i32 ) == 3_i32 );
 static_assert( ( 3_i32 ).shl_checked( 2_i32 ) == 12_i32 );
-static_assert( ( 3_i32 ).shl_checked( -1_i32 ) == 1_i32 );
-static_assert( ( -3_i32 ).shl_checked( -1_i32 ) == -2_i32 );
 static_assert( ( 12_i32 ).shr_checked( 0_i32 ) == 12_i32 );
 static_assert( ( 12_i32 ).shr_checked( 2_i32 ) == 3_i32 );
-static_assert( ( 12_i32 ).shr_checked( -1_i32 ) == 24_i32 );
 
 int main( ) {
 	auto overflow_count = 0;
@@ -46,41 +43,45 @@ int main( ) {
 
 	result = ( 3_i32 ).shl_checked( -1_i32 );
 	daw_ensure( result == 1_i32 );
-	daw_ensure( overflow_count == 0 );
+	daw_ensure( overflow_count == 1 );
+
+	result = ( -3_i32 ).shl_checked( -1_i32 );
+	daw_ensure( result == -2_i32 );
+	daw_ensure( overflow_count == 2 );
 
 	result = ( 12_i32 ).shr_checked( -1_i32 );
 	daw_ensure( result == 24_i32 );
-	daw_ensure( overflow_count == 0 );
+	daw_ensure( overflow_count == 3 );
 
 	result = ( 3_i32 ).shl_checked( 32_i32 );
 	daw_ensure( result == 3_i32 );
-	daw_ensure( overflow_count == 1 );
+	daw_ensure( overflow_count == 4 );
 
 	result = ( 12_i32 ).shr_checked( 32_i32 );
 	daw_ensure( result == 12_i32 );
-	daw_ensure( overflow_count == 2 );
+	daw_ensure( overflow_count == 5 );
 
 	result = ( 3_i32 ).shl_checked( 40_i32 );
 	daw_ensure( result == 3_i32 );
-	daw_ensure( overflow_count == 3 );
+	daw_ensure( overflow_count == 6 );
 
 	result = ( 12_i32 ).shr_checked( 40_i32 );
 	daw_ensure( result == 12_i32 );
-	daw_ensure( overflow_count == 4 );
+	daw_ensure( overflow_count == 7 );
 
 	result = ( 3_i32 ).shl_checked( -32_i32 );
 	daw_ensure( result == 3_i32 );
-	daw_ensure( overflow_count == 5 );
+	daw_ensure( overflow_count == 8 );
 
 	result = ( 12_i32 ).shr_checked( -32_i32 );
 	daw_ensure( result == 12_i32 );
-	daw_ensure( overflow_count == 6 );
+	daw_ensure( overflow_count == 9 );
 
 	result = ( 3_i32 ).shl_checked( daw::i32::min( ) );
 	daw_ensure( result == 3_i32 );
-	daw_ensure( overflow_count == 7 );
+	daw_ensure( overflow_count == 10 );
 
 	result = ( 12_i32 ).shr_checked( daw::i32::min( ) );
 	daw_ensure( result == 12_i32 );
-	daw_ensure( overflow_count == 8 );
+	daw_ensure( overflow_count == 11 );
 }

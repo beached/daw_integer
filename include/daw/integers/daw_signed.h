@@ -731,17 +731,33 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 		count_leading_zeros( ) const noexcept {
-			return daw::cxmath::count_leading_zeroes(
-			  daw::cxmath::to_unsigned( value( ) ) );
+			if constexpr( Bits == 8 ) {
+				return daw::cxmath::count_leading_zeroes( static_cast<std::uint32_t>(
+								 daw::cxmath::to_unsigned( value( ) ) ) ) -
+							 24;
+			} else if constexpr( Bits == 16 ) {
+				return daw::cxmath::count_leading_zeroes( static_cast<std::uint32_t>(
+								 daw::cxmath::to_unsigned( value( ) ) ) ) -
+							 16;
+			} else {
+				return daw::cxmath::count_leading_zeroes(
+					daw::cxmath::to_unsigned( value( ) ) );
+			}
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 		count_trailing_zeros( ) const noexcept {
-			return daw::cxmath::count_trailing_zeros(
-			  daw::cxmath::to_unsigned( value( ) ) );
+			if constexpr( Bits == 8 or Bits == 16 ) {
+				return std::min(
+					{ static_cast<std::uint32_t>( bit_count_v<value_type> ),
+						daw::cxmath::count_trailing_zeros( static_cast<std::uint32_t>(
+							daw::cxmath::to_unsigned( value( ) ) ) ) } );
+			} else {
+				return daw::cxmath::count_trailing_zeros(
+					daw::cxmath::to_unsigned( value( ) ) );
+			}
 		}
 
-	private:
 	public:
 		/// @brief compute pow using current value as base and pow as exponent.
 		/// Checked in debug mode

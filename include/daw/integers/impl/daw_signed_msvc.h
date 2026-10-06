@@ -171,6 +171,7 @@ namespace daw::integers::sint_impl {
 					return lhs;
 				}
 				if( rhs < 0 ) {
+					on_signed_integer_overflow( );
 					return static_cast<T>( lhs >> count );
 				}
 				return static_cast<T>( lhs << count );
@@ -191,6 +192,7 @@ namespace daw::integers::sint_impl {
 					return lhs;
 				}
 				if( rhs < 0 ) {
+					on_signed_integer_overflow( );
 					return static_cast<T>( lhs << count );
 				}
 				return static_cast<T>( lhs >> count );
