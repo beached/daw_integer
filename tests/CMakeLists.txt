@@ -40,3 +40,7 @@ add_executable( signed_shift_test_bin
                 src/daw_integers_signed_shift_test.cpp )
 target_link_libraries( signed_shift_test_bin PRIVATE daw_integer_test_lib )
 add_test( NAME signed_shift_test_bin COMMAND signed_shift_test_bin )
+
+add_executable( signed_sign_test_bin src/daw_integers_signed_sign_test.cpp )
+target_link_libraries( signed_sign_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_sign_test_bin COMMAND signed_sign_test_bin )

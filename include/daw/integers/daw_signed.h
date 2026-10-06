@@ -12,6 +12,7 @@
 #include "impl/daw_signed_impl.h"
 
 #include <daw/daw_arith_traits.h>
+#include <daw/daw_as.h>
 #include <daw/daw_attributes.h>
 #include <daw/daw_bit_count.h>
 #include <daw/daw_consteval.h>
@@ -135,7 +136,7 @@ namespace daw::integers {
 		template<typename I>
 		requires daw::is_integral_v<I> //
 		DAW_ATTRIB_INLINE constexpr explicit signed_integer( I v )
-		  : m_private{ static_cast<value_type>( v ) } {
+		  : m_private{ as<value_type>( v ) } {
 			if constexpr( not sint_impl::convertible_signed_int<value_type, I> ) {
 				if( DAW_UNLIKELY( not daw::in_range<value_type>( v ) ) ) {
 					DAW_UNLIKELY_BRANCH
@@ -182,7 +183,7 @@ namespace daw::integers {
 				DAW_UNLIKELY_BRANCH
 				on_signed_integer_overflow( );
 			}
-			return signed_integer( static_cast<value_type>( other ) );
+			return signed_integer( as<value_type>( other ) );
 		}
 
 		/// @brief `conversion_checked` provides safe type conversion operations
@@ -202,7 +203,7 @@ namespace daw::integers {
 		template<std::size_t I>
 		[[nodiscard]] static constexpr signed_integer
 		conversion_unchecked( signed_integer<I> other ) {
-			return signed_integer( static_cast<value_type>( other.value( ) ) );
+			return signed_integer( as<value_type>( other.value( ) ) );
 		}
 
 		/// @brief Converts another numeric type to a signed integer without bounds
@@ -213,7 +214,7 @@ namespace daw::integers {
 		template<typename I>
 		requires daw::is_integral_v<I> //
 		static constexpr signed_integer conversion_unchecked( I other ) {
-			return signed_integer( static_cast<value_type>( other ) );
+			return signed_integer( as<value_type>( other ) );
 		}
 
 		/// @brief Construct a signed_integer from another that has a larger range
@@ -223,7 +224,7 @@ namespace daw::integers {
 		requires( I > Bits ) //
 		DAW_ATTRIB_INLINE explicit constexpr signed_integer(
 		  signed_integer<I> other ) noexcept
-		  : m_private{ static_cast<value_type>( other.value( ) ) } {
+		  : m_private{ as<value_type>( other.value( ) ) } {
 #if DAW_DEFAULT_SIGNED_CHECKING == 0
 			if( not daw::in_range<value_type>( other.value( ) ) ) {
 				on_signed_integer_overflow( );
@@ -237,14 +238,14 @@ namespace daw::integers {
 		requires( I / 8 <= sizeof( value_type ) ) //
 		DAW_ATTRIB_INLINE constexpr signed_integer(
 		  signed_integer<I> other ) noexcept
-		  : m_private{ static_cast<value_type>( other.value( ) ) } {}
+		  : m_private{ as<value_type>( other.value( ) ) } {}
 
 		/// @brief Allow conversion to an arithmetic type
 		template<typename Arithmetic>
 		requires( daw::is_arithmetic_v<Arithmetic> ) //
 		[[nodiscard]] DAW_ATTRIB_INLINE explicit constexpr
 		operator Arithmetic( ) const noexcept {
-			return static_cast<Arithmetic>( value( ) );
+			return as<Arithmetic>( value( ) );
 		}
 
 		/// @brief Allow conversion to signed_integer types that are larger in range
@@ -305,7 +306,7 @@ namespace daw::integers {
 		/// @brief Computes the bitwise not and returns as a signed integer
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		operator~( ) const {
-			return signed_integer( static_cast<value_type>( ~value( ) ) );
+			return signed_integer( as<value_type>( ~value( ) ) );
 		}
 
 		/// @brief Add signed_integer rhs to self.  Checked in debug mode
@@ -677,7 +678,7 @@ namespace daw::integers {
 		template<typename I>
 		requires( sint_impl::convertible_signed_int<value_type, I> ) //
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator|=( I rhs ) {
-			m_private.value |= static_cast<value_type>( rhs );
+			m_private.value |= as<value_type>( rhs );
 			return *this;
 		}
 
@@ -690,7 +691,7 @@ namespace daw::integers {
 		template<typename I>
 		requires( sint_impl::convertible_signed_int<value_type, I> ) //
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator&=( I rhs ) {
-			m_private.value &= static_cast<value_type>( rhs );
+			m_private.value &= as<value_type>( rhs );
 			return *this;
 		}
 
@@ -703,24 +704,24 @@ namespace daw::integers {
 		template<typename I>
 		requires( sint_impl::convertible_signed_int<value_type, I> ) //
 		DAW_ATTRIB_INLINE constexpr signed_integer &operator^=( I rhs ) {
-			m_private.value ^= static_cast<value_type>( rhs );
+			m_private.value ^= as<value_type>( rhs );
 			return *this;
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE explicit constexpr
 		operator bool( ) const noexcept {
-			return static_cast<bool>( value( ) );
+			return as<bool>( value( ) );
 		}
 
 		// Logical without short circuit
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr bool
 		And( signed_integer const &rhs ) const noexcept {
-			return static_cast<bool>( *this ) and static_cast<bool>( rhs );
+			return as<bool>( *this ) and as<bool>( rhs );
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr bool
 		Or( signed_integer const &rhs ) const noexcept {
-			return static_cast<bool>( *this ) or static_cast<bool>( rhs );
+			return as<bool>( *this ) or as<bool>( rhs );
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
@@ -732,33 +733,31 @@ namespace daw::integers {
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 		count_leading_zeros( ) const noexcept {
 			if constexpr( Bits == 8 ) {
-				return daw::cxmath::count_leading_zeroes( static_cast<std::uint32_t>(
-								 daw::cxmath::to_unsigned( value( ) ) ) ) -
-							 24;
+				return daw::cxmath::count_leading_zeroes(
+				         as<std::uint32_t>( daw::cxmath::to_unsigned( value( ) ) ) ) -
+				       24;
 			} else if constexpr( Bits == 16 ) {
-				return daw::cxmath::count_leading_zeroes( static_cast<std::uint32_t>(
-								 daw::cxmath::to_unsigned( value( ) ) ) ) -
-							 16;
+				return daw::cxmath::count_leading_zeroes(
+				         as<std::uint32_t>( daw::cxmath::to_unsigned( value( ) ) ) ) -
+				       16;
 			} else {
 				return daw::cxmath::count_leading_zeroes(
-					daw::cxmath::to_unsigned( value( ) ) );
+				  daw::cxmath::to_unsigned( value( ) ) );
 			}
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 		count_trailing_zeros( ) const noexcept {
 			if constexpr( Bits == 8 or Bits == 16 ) {
-				return std::min(
-					{ static_cast<std::uint32_t>( bit_count_v<value_type> ),
-						daw::cxmath::count_trailing_zeros( static_cast<std::uint32_t>(
-							daw::cxmath::to_unsigned( value( ) ) ) ) } );
+				return std::min( { as<std::uint32_t>( bit_count_v<value_type> ),
+				                   daw::cxmath::count_trailing_zeros( as<std::uint32_t>(
+				                     daw::cxmath::to_unsigned( value( ) ) ) ) } );
 			} else {
 				return daw::cxmath::count_trailing_zeros(
-					daw::cxmath::to_unsigned( value( ) ) );
+				  daw::cxmath::to_unsigned( value( ) ) );
 			}
 		}
 
-	public:
 		/// @brief compute pow using current value as base and pow as exponent.
 		/// Checked in debug mode
 		[[nodiscard]] constexpr signed_integer pow( unsigned pow ) const {
@@ -797,6 +796,19 @@ namespace daw::integers {
 			return sint_impl::pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
 				return lhs.mul_saturated( rhs );
 			} );
+		}
+
+		[[nodiscard]] constexpr bool is_positive( ) const {
+			return m_private.value > value_type{ };
+		}
+
+		[[nodiscard]] constexpr bool is_negative( ) const {
+			return m_private.value < value_type{ };
+		}
+
+		[[nodiscard]] constexpr signed_integer signum( ) const {
+			return signed_integer{ as<int>( m_private.value > value_type{ } ) -
+			                       as<int>( m_private.value < value_type{ } ) };
 		}
 	};
 
@@ -1254,7 +1266,7 @@ namespace daw::integers {
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
 			}
-			return signed_integer<8>( static_cast<int_t>( v ) );
+			return signed_integer<8>( as<int_t>( v ) );
 		}
 
 		[[nodiscard]] DAW_CONSTEVAL signed_integer<16>
@@ -1263,7 +1275,7 @@ namespace daw::integers {
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
 			}
-			return signed_integer<16>( static_cast<int_t>( v ) );
+			return signed_integer<16>( as<int_t>( v ) );
 		}
 
 		[[nodiscard]] DAW_CONSTEVAL signed_integer<32>
@@ -1272,7 +1284,7 @@ namespace daw::integers {
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
 			}
-			return signed_integer<32>( static_cast<int_t>( v ) );
+			return signed_integer<32>( as<int_t>( v ) );
 		}
 
 		[[nodiscard]] DAW_CONSTEVAL signed_integer<64>
@@ -1281,7 +1293,7 @@ namespace daw::integers {
 			if( not daw::in_range<int_t>( v ) ) {
 				on_signed_integer_overflow( );
 			}
-			return signed_integer<64>( static_cast<int_t>( v ) );
+			return signed_integer<64>( as<int_t>( v ) );
 		}
 	} // namespace literals
 } // namespace daw::integers
