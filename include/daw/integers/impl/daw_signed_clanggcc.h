@@ -32,14 +32,22 @@
 
 namespace daw::integers::sint_impl {
 	template<typename T>
-	inline constexpr bool is_valid_int_type =
-	  daw::is_integral_v<T> and daw::is_signed_v<T> and
-	  sizeof( T ) <= sizeof( std::int64_t );
+	concept ValidIntType = daw::is_integral_v<T> and daw::is_signed_v<T> and
+	                       sizeof( T ) <= sizeof( std::int64_t );
 
-	template<typename SignedInteger,
-	         std::enable_if_t<
-	           daw::traits::is_one_of_v<SignedInteger, signed char, short>,
-	           std::nullptr_t> = nullptr>
+	template<ValidIntType T>
+	DAW_ATTRIB_INLINE constexpr std::make_unsigned_t<T>
+	unsigned_magnitude( T value ) {
+		using unsigned_t = std::make_unsigned_t<T>;
+		auto const unsigned_value = static_cast<unsigned_t>( value );
+		if( value < 0 ) {
+			return unsigned_t{ 0 } - unsigned_value;
+		}
+		return unsigned_value;
+	}
+
+	template<typename SignedInteger>
+	requires( daw::traits::is_one_of_v<SignedInteger, signed char, short> )
 	DAW_ATTRIB_INLINE constexpr bool
 	wrapping_add( SignedInteger a, SignedInteger b, SignedInteger &result ) {
 		static_assert( sizeof( int ) >= sizeof( SignedInteger ) );
@@ -49,19 +57,15 @@ namespace daw::integers::sint_impl {
 		return r;
 	}
 
-	template<typename SignedInteger,
-	         std::enable_if_t<
-	           daw::traits::is_one_of_v<SignedInteger, int, long, long long>,
-	           std::nullptr_t> = nullptr>
+	template<typename SignedInteger>
+	requires( daw::traits::is_one_of_v<SignedInteger, int, long, long long> )
 	DAW_ATTRIB_INLINE constexpr bool
 	wrapping_add( SignedInteger a, SignedInteger b, SignedInteger &result ) {
 		return __builtin_add_overflow( a, b, &result );
 	}
 
-	template<typename SignedInteger,
-	         std::enable_if_t<
-	           daw::traits::is_one_of_v<SignedInteger, signed char, short>,
-	           std::nullptr_t> = nullptr>
+	template<typename SignedInteger>
+	requires( daw::traits::is_one_of_v<SignedInteger, signed char, short> )
 	DAW_ATTRIB_INLINE constexpr bool
 	wrapping_sub( SignedInteger a, SignedInteger b, SignedInteger &result ) {
 		static_assert( sizeof( int ) >= sizeof( SignedInteger ) );
@@ -71,19 +75,15 @@ namespace daw::integers::sint_impl {
 		return r;
 	}
 
-	template<typename SignedInteger,
-	         std::enable_if_t<
-	           daw::traits::is_one_of_v<SignedInteger, int, long, long long>,
-	           std::nullptr_t> = nullptr>
+	template<typename SignedInteger>
+	requires( daw::traits::is_one_of_v<SignedInteger, int, long, long long> )
 	DAW_ATTRIB_INLINE constexpr bool
 	wrapping_sub( SignedInteger a, SignedInteger b, SignedInteger &result ) {
 		return __builtin_sub_overflow( a, b, &result );
 	}
 
-	template<typename SignedInteger,
-	         std::enable_if_t<
-	           daw::traits::is_one_of_v<SignedInteger, signed char, short>,
-	           std::nullptr_t> = nullptr>
+	template<typename SignedInteger>
+	requires( daw::traits::is_one_of_v<SignedInteger, signed char, short> )
 	DAW_ATTRIB_INLINE constexpr bool
 	wrapping_mul( SignedInteger a, SignedInteger b, SignedInteger &result ) {
 		static_assert( sizeof( int ) >= sizeof( SignedInteger ) );
@@ -93,10 +93,8 @@ namespace daw::integers::sint_impl {
 		return r;
 	}
 
-	template<typename SignedInteger,
-	         std::enable_if_t<
-	           daw::traits::is_one_of_v<SignedInteger, int, long, long long>,
-	           std::nullptr_t> = nullptr>
+	template<typename SignedInteger>
+	requires( daw::traits::is_one_of_v<SignedInteger, int, long, long long> )
 	DAW_ATTRIB_INLINE constexpr bool
 	wrapping_mul( SignedInteger a, SignedInteger b, SignedInteger &result ) {
 		return __builtin_mul_overflow( a, b, &result );
@@ -105,8 +103,7 @@ namespace daw::integers::sint_impl {
 	inline constexpr struct checked_div_t {
 		explicit checked_div_t( ) = default;
 
-		template<typename T,
-		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
+		template<ValidIntType T>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
 			DAW_IF_CONSTEVAL {
 				return lhs / rhs;
@@ -152,8 +149,7 @@ namespace daw::integers::sint_impl {
 	inline constexpr struct checked_rem_t {
 		explicit checked_rem_t( ) = default;
 
-		template<typename T,
-		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
+		template<ValidIntType T>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
 			DAW_IF_CONSTEVAL {
 				return lhs % rhs;
@@ -161,10 +157,11 @@ namespace daw::integers::sint_impl {
 			else {
 				if( DAW_UNLIKELY( rhs == 0 ) ) {
 					on_signed_integer_div_by_zero( );
+					return lhs;
 				}
-				if( lhs == daw::numeric_limits<T>::min( ) and
-				    rhs.value( ) == T{ -1 } ) {
+				if( lhs == daw::numeric_limits<T>::min( ) and rhs == T{ -1 } ) {
 					on_signed_integer_overflow( );
+					return T{ };
 				}
 				return lhs % rhs;
 			}
@@ -174,42 +171,40 @@ namespace daw::integers::sint_impl {
 	inline constexpr struct checked_shl_t {
 		explicit checked_shl_t( ) = default;
 
-		template<typename T,
-		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
+		template<ValidIntType T>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
-			DAW_IF_CONSTEVAL {
-				return lhs << rhs;
-			} else {
-				if( DAW_UNLIKELY( rhs == 0 ) ) {
-					on_signed_integer_overflow( );
-					return lhs;
-				} else if( DAW_UNLIKELY( rhs >= daw::bit_count_v<T> ) ) {
-					on_signed_integer_overflow( );
-					return lhs << ( daw::bit_count_v<T> - 1 );
-				}
-				return lhs << rhs;
+			if( rhs == 0 ) {
+				return lhs;
 			}
+			auto const count = unsigned_magnitude( rhs );
+			if( DAW_UNLIKELY( count >= daw::bit_count_v<T> ) ) {
+				on_signed_integer_overflow( );
+				return lhs;
+			}
+			if( rhs < 0 ) {
+				return static_cast<T>( lhs >> count );
+			}
+			return static_cast<T>( lhs << count );
 		}
 	} checked_shl{ };
 
 	inline constexpr struct checked_shr_t {
 		explicit checked_shr_t( ) = default;
 
-		template<typename T,
-		         std::enable_if_t<is_valid_int_type<T>, std::nullptr_t> = nullptr>
+		template<ValidIntType T>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
-			DAW_IF_CONSTEVAL {
-				return lhs >> rhs;
-			} else {
-				if( DAW_UNLIKELY( rhs == 0 ) ) {
-					on_signed_integer_overflow( );
-					return lhs;
-				} else if( DAW_UNLIKELY( rhs >= daw::bit_count_v<T> ) ) {
-					on_signed_integer_overflow( );
-					return lhs >> ( daw::bit_count_v<T> - 1 );
-				}
-				return lhs >> rhs;
+			if( rhs == 0 ) {
+				return lhs;
 			}
+			auto const count = unsigned_magnitude( rhs );
+			if( DAW_UNLIKELY( count >= daw::bit_count_v<T> ) ) {
+				on_signed_integer_overflow( );
+				return lhs;
+			}
+			if( rhs < 0 ) {
+				return static_cast<T>( lhs << count );
+			}
+			return static_cast<T>( lhs >> count );
 		}
 	} checked_shr{ };
 } // namespace daw::integers::sint_impl

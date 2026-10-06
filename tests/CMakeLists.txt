@@ -15,3 +15,28 @@ add_executable( signed_test_bin src/daw_integers_signed_test.cpp )
 target_link_libraries( signed_test_bin PRIVATE daw_integer_test_lib )
 add_test( NAME signed_test_bin COMMAND signed_test_bin )
 
+add_executable( signed_contract_test_bin
+                src/daw_integers_signed_contract_test.cpp )
+target_link_libraries( signed_contract_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_contract_test_bin COMMAND signed_contract_test_bin )
+
+add_executable( signed_pow_test_bin src/daw_integers_signed_pow_test.cpp )
+target_link_libraries( signed_pow_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_pow_test_bin COMMAND signed_pow_test_bin )
+
+add_executable( signed_remainder_test_bin
+                src/daw_integers_signed_remainder_test.cpp )
+target_link_libraries( signed_remainder_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_remainder_test_bin COMMAND signed_remainder_test_bin )
+
+add_executable( signed_runtime_regression_test_bin
+                src/daw_integers_signed_runtime_regression_test.cpp )
+target_link_libraries( signed_runtime_regression_test_bin
+                       PRIVATE daw_integer_test_lib )
+add_test( NAME signed_runtime_regression_test_bin
+          COMMAND signed_runtime_regression_test_bin )
+
+add_executable( signed_shift_test_bin
+                src/daw_integers_signed_shift_test.cpp )
+target_link_libraries( signed_shift_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_shift_test_bin COMMAND signed_shift_test_bin )

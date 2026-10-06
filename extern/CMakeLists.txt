@@ -21,6 +21,7 @@ if( DAW_EXTERN_USE_LATEST )
             daw_header_libraries
             GIT_REPOSITORY https://github.com/beached/header_libraries.git
             GIT_TAG v2
+						SYSTEM
     )
     message( STATUS "Using latest header_libraries" )
 else()
@@ -29,6 +30,7 @@ else()
             GIT_REPOSITORY https://github.com/beached/header_libraries.git
 						GIT_SHALLOW 1
             GIT_TAG master
+						SYSTEM
     )
 endif()
 

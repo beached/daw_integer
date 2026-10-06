@@ -63,10 +63,9 @@ namespace daw::integers {
 
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
-	template<typename Func,
-	         std::enable_if_t<std::is_class_v<Func> and
-	                            std::is_invocable_v<Func, SignedIntegerErrorType>,
-	                          std::nullptr_t> = nullptr>
+	template<typename Func>
+	requires( std::is_class_v<Func> and
+	          std::is_invocable_v<Func, SignedIntegerErrorType> )
 	DAW_ATTRIB_NOINLINE inline void
 	register_signed_overflow_handler( Func &handler ) noexcept {
 		if constexpr( std::is_const_v<Func> ) {
@@ -96,10 +95,9 @@ namespace daw::integers {
 
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
-	template<typename Func,
-	         std::enable_if_t<std::is_class_v<Func> and
-	                            std::is_invocable_v<Func, SignedIntegerErrorType>,
-	                          std::nullptr_t> = nullptr>
+	template<typename Func>
+	requires( std::is_class_v<Func> and
+	          std::is_invocable_v<Func, SignedIntegerErrorType> )
 	DAW_ATTRIB_NOINLINE inline void
 	register_signed_div_by_zero_handler( Func &handler ) noexcept {
 		if constexpr( std::is_const_v<Func> ) {
