@@ -181,7 +181,7 @@ namespace daw::integers::sint_impl {
 
 		template<ValidIntType T>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
-			if( rhs == 0 ) {
+			if( rhs == T{ } ) {
 				return lhs;
 			}
 			auto const count = unsigned_magnitude( rhs );
@@ -189,7 +189,7 @@ namespace daw::integers::sint_impl {
 				on_signed_integer_overflow( );
 				return lhs;
 			}
-			if( rhs < 0 ) {
+			if( rhs < T{ } ) {
 				on_signed_integer_overflow( );
 				return static_cast<T>( lhs >> count );
 			}

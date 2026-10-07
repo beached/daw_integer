@@ -19,7 +19,7 @@
 - **Safer Integer Operations**: Helps prevent overflow and underflow errors.
 - **Customizable Behavior**: Options to handle errors gracefully or enforce strict checks.
 - **Lightweight**: Minimal overhead for safety enhancements.
-- **C++17 and Later**: Leverages modern C++ standards for clean and efficient code.
+- **C++20 and Later**: Leverages modern C++ standards for clean and efficient code.
 
 ---
 

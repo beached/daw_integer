@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <climits>
 #include <cstdint>
 #include <exception>
@@ -76,7 +77,7 @@ namespace daw::integers {
 		                            signed_integer<sizeof( Rhs ) * 8>>::type;
 
 		template<std::size_t Bits>
-		DAW_ATTRIB_FLATINLINE static constexpr signed_integer<Bits>
+		DAW_ATTRIB_FLATINLINE constexpr signed_integer<Bits>
 		pow_impl( signed_integer<Bits> base, unsigned exp, auto &&multiplier ) {
 			auto result = signed_integer<Bits>{ 1 }; // Initialize the result to 1
 
@@ -102,10 +103,6 @@ namespace daw::integers {
 	/// @brief Signed Integer type with overflow checked/wrapping/saturated
 	/// operations
 	template<std::size_t Bits>
-	/**
-	 * @brief Constructs a signed_integer from an integer type.
-	 * @tparam I The type of the input parameter.
-	 * @param v The value*/
 	struct [[DAW_PREF_NAME( i8 ), DAW_PREF_NAME( i16 ), DAW_PREF_NAME( i32 ),
 	         DAW_PREF_NAME( i64 )]] signed_integer {
 		using SignedInteger = typename sint_impl::signed_integer_type<Bits>::type;
@@ -145,6 +142,15 @@ namespace daw::integers {
 			}
 		}
 
+		static constexpr struct unchecked_t {
+			explicit unchecked_t( ) = default;
+		} unchecked{ };
+
+		template<typename I>
+		requires daw::is_integral_v<I> //
+		DAW_ATTRIB_INLINE constexpr explicit signed_integer( I v, unchecked_t )
+		  : m_private{ as<value_type>( v ) } {}
+
 		/// @brief Creates an integer from a bytes object using little-endian byte
 		/// order.
 		/// @param ptr A byte array representing the integer in little-endian byte
@@ -152,7 +158,7 @@ namespace daw::integers {
 		/// @return The signed_integer represented by the bytes in little-endian
 		/// order.
 		[[nodiscard]] static constexpr signed_integer
-		from_bytes_le( unsigned char const *ptr ) {
+		from_bytes_le( unsigned char const *ptr ) noexcept {
 			return signed_integer{
 			  daw::integers::sint_impl::from_bytes_le<value_type>(
 			    ptr, std::make_index_sequence<sizeof( value_type )>{ } ) };
@@ -223,7 +229,7 @@ namespace daw::integers {
 		template<std::size_t I>
 		requires( I > Bits ) //
 		DAW_ATTRIB_INLINE explicit constexpr signed_integer(
-		  signed_integer<I> other ) noexcept
+		  signed_integer<I> other )
 		  : m_private{ as<value_type>( other.value( ) ) } {
 #if DAW_DEFAULT_SIGNED_CHECKING == 0
 			if( not daw::in_range<value_type>( other.value( ) ) ) {
@@ -283,7 +289,8 @@ namespace daw::integers {
 		// current instance.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		negate_unchecked( ) const {
-			return signed_integer( -value( ) );
+			return signed_integer( as<value_type>( -as_unsigned( value( ) ) ),
+			                       unchecked );
 		}
 
 		// @brief Negates the current signed_integer, wrapping when overflow happens
@@ -291,7 +298,8 @@ namespace daw::integers {
 		// current instance.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		negate_wrapped( ) const {
-			return mul_wrapped( signed_integer( -1 ) );
+			return signed_integer{ as<value_type>( -as_unsigned( value( ) ) ),
+			                       unchecked };
 		}
 
 		// @brief Negates the current signed_integer, saturating when overflow
@@ -340,7 +348,7 @@ namespace daw::integers {
 		add_overflowing( signed_integer const &rhs ) const {
 			wrapping_result result;
 			result.overflowed =
-			  sint_impl::wrapped_add( value( ), rhs.value( ), result.value );
+			  sint_impl::wrapping_add( value( ), rhs.value( ), result.value );
 			return result;
 		}
 
@@ -348,7 +356,7 @@ namespace daw::integers {
 		sub_overflowing( signed_integer const &rhs ) const {
 			wrapping_result result;
 			result.overflowed =
-			  sint_impl::wrapped_sub( value( ), rhs.value( ), result.value );
+			  sint_impl::wrapping_sub( value( ), rhs.value( ), result.value );
 			return result;
 		}
 
@@ -356,7 +364,7 @@ namespace daw::integers {
 		mul_overflowing( signed_integer const &rhs ) const {
 			wrapping_result result;
 			result.overflowed =
-			  sint_impl::wrapped_mul( value( ), rhs.value( ), result.value );
+			  sint_impl::wrapping_mul( value( ), rhs.value( ), result.value );
 			return result;
 		}
 
@@ -401,7 +409,10 @@ namespace daw::integers {
 		/// overflow checking is performed
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		add_unchecked( signed_integer const &rhs ) const {
-			return signed_integer{ value( ) + rhs.value( ) };
+			return signed_integer{
+			  as<value_type>( sint_impl::as_next_wider_or_unsigned( value( ) ) +
+			                  sint_impl::as_next_wider_or_unsigned( rhs.value( ) ) ),
+			  unchecked };
 		}
 
 		/// @brief saturated addition of rhs and current value and return a new
@@ -453,7 +464,10 @@ namespace daw::integers {
 		/// overflow checking.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		sub_unchecked( signed_integer const &rhs ) const {
-			return signed_integer{ value( ) - rhs.value( ) };
+			return signed_integer{
+			  as<value_type>( sint_impl::as_next_wider_or_unsigned( value( ) ) -
+			                  sint_impl::as_next_wider_or_unsigned( rhs.value( ) ) ),
+			  unchecked };
 		}
 
 		/// @brief Subtract rhs from this and return a new signed_integer.  On
@@ -513,7 +527,10 @@ namespace daw::integers {
 		/// signed_integer
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		mul_unchecked( signed_integer const &rhs ) const {
-			return signed_integer( value( ) * rhs.value( ) );
+			return signed_integer{
+			  as<value_type>( sint_impl::as_next_wider_or_unsigned( value( ) ) *
+			                  sint_impl::as_next_wider_or_unsigned( rhs.value( ) ) ),
+			  unchecked };
 		}
 
 		/// @brief Perform saturated multiplication with rhs and return a new
@@ -565,7 +582,8 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		div_unchecked( signed_integer const &rhs ) const {
-			return signed_integer( value( ) / rhs.value( ) );
+			return signed_integer{ as<value_type>( value( ) / rhs.value( ) ),
+			                       unchecked };
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
@@ -691,7 +709,8 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		rem_unchecked( signed_integer const &rhs ) const {
-			return signed_integer{ value( ) % rhs.value( ) };
+			return signed_integer{ as<value_type>( value( ) % rhs.value( ) ),
+			                       unchecked };
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
@@ -783,7 +802,7 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		shl_unchecked( signed_integer const &rhs ) const {
-			return value( ) << rhs.value( );
+			return signed_integer{ value( ) << rhs.value( ), unchecked };
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
@@ -791,11 +810,12 @@ namespace daw::integers {
 			if( n < 0 ) {
 				on_signed_integer_overflow( );
 				return *this;
-			} else if( n == 0 ) {
+			}
+			if( n == 0 ) {
 				return *this;
 			}
-			n &= daw::bit_count_v<value_type> - 1;
-			return signed_integer( value( ) << n.value( ) );
+			n &= signed_integer{ daw::bit_count_v<value_type> - 1 };
+			return signed_integer( value( ) << n.value( ), unchecked );
 		}
 
 		template<typename I>
@@ -809,7 +829,7 @@ namespace daw::integers {
 				return *this;
 			}
 			n &= daw::bit_count_v<value_type> - 1;
-			return signed_integer( value( ) << n );
+			return signed_integer( value( ) << n, unchecked );
 		}
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
@@ -831,7 +851,7 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		shr_unchecked( signed_integer const &rhs ) const {
-			return value( ) >> rhs.value( );
+			return signed_integer{ value( ) >> rhs.value( ), unchecked };
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
@@ -839,10 +859,11 @@ namespace daw::integers {
 			if( n < 0 ) {
 				on_signed_integer_overflow( );
 				return *this;
-			} else if( n == 0 ) {
+			}
+			if( n == 0 ) {
 				return *this;
 			}
-			n &= daw::bit_count_v<value_type> - 1;
+			n &= signed_integer{ daw::bit_count_v<value_type> - 1 };
 			return signed_integer( value( ) >> n.value( ) );
 		}
 
@@ -850,10 +871,11 @@ namespace daw::integers {
 		requires( daw::is_integral_v<I> ) //
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		shr_overflowing( I n ) const {
-			if( n < 0 ) {
+			if( n < I{ } ) {
 				on_signed_integer_overflow( );
 				return *this;
-			} else if( n == 0 ) {
+			}
+			if( n == I{ } ) {
 				return *this;
 			}
 			n &= daw::bit_count_v<value_type> - 1;
@@ -862,14 +884,18 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		rotate_left( std::size_t n ) const {
-			return shl_overflowing( n ) |
-			       shr_overflowing( daw::bit_count_v<value_type> - n );
+			return signed_integer(
+			  as<value_type>( std::rotl( as_unsigned( value( ) ),
+			                             n % daw::bit_count_v<value_type> ) ),
+			  unchecked );
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		rotate_right( std::size_t n ) const {
-			return shr_overflowing( n ) |
-			       shl_overflowing( daw::bit_count_v<value_type> - n );
+			return signed_integer(
+			  as<value_type>( std::rotr( as_unsigned( value( ) ),
+			                             n % daw::bit_count_v<value_type> ) ),
+			  unchecked );
 		}
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
@@ -1596,8 +1622,8 @@ namespace std {
 		  std::round_toward_zero;
 		static constexpr bool is_iec559 = false;
 		static constexpr bool is_bounded = true;
-		// We force wrapping
-		static constexpr bool is_modulo = true;
+		static constexpr bool is_modulo = numeric_limits<
+		  typename daw::integers::signed_integer<Bits>::value_type>::is_modulo;
 		static constexpr int digits = Bits - 1;
 
 		static constexpr int digits10 = digits * 3 / 10;
@@ -1628,32 +1654,32 @@ namespace std {
 
 		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
 		epsilon( ) noexcept {
-			return 0;
+			return daw::integers::signed_integer<Bits>{ };
 		}
 
 		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
 		round_error( ) noexcept {
-			return 0;
+			return daw::integers::signed_integer<Bits>{ };
 		}
 
 		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
 		infinity( ) noexcept {
-			return 0;
+			return daw::integers::signed_integer<Bits>{ };
 		}
 
 		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
 		quiet_NaN( ) noexcept {
-			return 0;
+			return daw::integers::signed_integer<Bits>{ };
 		}
 
 		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
 		signaling_NaN( ) noexcept {
-			return 0;
+			return daw::integers::signed_integer<Bits>{ };
 		}
 
 		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
 		denorm_min( ) noexcept {
-			return 0;
+			return daw::integers::signed_integer<Bits>{ };
 		}
 	};
 } // namespace std

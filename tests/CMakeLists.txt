@@ -60,3 +60,43 @@ target_link_libraries( signed_div_rem_overflowing_test_bin
                        PRIVATE daw_integer_test_lib )
 add_test( NAME signed_div_rem_overflowing_test_bin
           COMMAND signed_div_rem_overflowing_test_bin )
+
+add_executable( signed_negate_test_bin src/daw_integers_signed_negate_test.cpp )
+target_link_libraries( signed_negate_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_negate_test_bin COMMAND signed_negate_test_bin )
+
+add_executable( signed_unchecked_test_bin src/daw_integers_signed_unchecked_test.cpp )
+target_link_libraries( signed_unchecked_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_unchecked_test_bin COMMAND signed_unchecked_test_bin )
+
+add_executable( signed_rotate_test_bin src/daw_integers_signed_rotate_test.cpp )
+target_link_libraries( signed_rotate_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_rotate_test_bin COMMAND signed_rotate_test_bin )
+
+add_executable( signed_arith_overflowing_test_bin src/daw_integers_signed_arith_overflowing_test.cpp )
+target_link_libraries( signed_arith_overflowing_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_arith_overflowing_test_bin COMMAND signed_arith_overflowing_test_bin )
+
+add_executable( signed_shift_ops_test_bin src/daw_integers_signed_shift_ops_test.cpp )
+target_link_libraries( signed_shift_ops_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_shift_ops_test_bin COMMAND signed_shift_ops_test_bin )
+
+add_executable( signed_numeric_limits_test_bin src/daw_integers_signed_numeric_limits_test.cpp )
+target_link_libraries( signed_numeric_limits_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_numeric_limits_test_bin COMMAND signed_numeric_limits_test_bin )
+
+add_executable( signed_constexpr_checked_test_bin src/daw_integers_signed_constexpr_checked_test.cpp )
+target_link_libraries( signed_constexpr_checked_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME signed_constexpr_checked_test_bin COMMAND signed_constexpr_checked_test_bin )
+
+# Same source built in each DAW_DEFAULT_SIGNED_CHECKING mode
+foreach( mode 0 1 2 )
+  add_executable( signed_checking_mode_${mode}_test_bin
+                  src/daw_integers_signed_checking_modes_test.cpp )
+  target_link_libraries( signed_checking_mode_${mode}_test_bin
+                         PRIVATE daw_integer_test_lib )
+  target_compile_definitions( signed_checking_mode_${mode}_test_bin
+                              PRIVATE DAW_DEFAULT_SIGNED_CHECKING=${mode} )
+  add_test( NAME signed_checking_mode_${mode}_test_bin
+            COMMAND signed_checking_mode_${mode}_test_bin )
+endforeach( )

@@ -11,6 +11,7 @@
 #include "daw/integers/impl/daw_signed_clanggcc.h"
 #include "daw/integers/impl/daw_signed_msvc.h"
 
+#include <daw/daw_as.h>
 #include <daw/daw_cpp_feature_check.h>
 #include <daw/daw_int_cmp.h>
 #include <daw/daw_integer_reverse.h>
@@ -22,24 +23,38 @@
 #include <type_traits>
 
 namespace daw::integers::sint_impl {
+	template<typename T>
+	using next_wider_or_unsigned_t =
+	  std::conditional_t<sizeof( T ) >= 8, make_unsigned_t<T>,
+	                     daw::next_wider_t<T>>;
+
+	template<typename T>
+	[[nodiscard]] DAW_ATTRIB_INLINE constexpr next_wider_or_unsigned_t<T>
+	as_next_wider_or_unsigned( T value ) {
+		return static_cast<next_wider_or_unsigned_t<T>>( value );
+	}
+
 	template<typename Unsigned, std::size_t... Is>
 	DAW_ATTRIB_INLINE constexpr Unsigned
-	from_bytes_le( unsigned char const *ptr, std::index_sequence<Is...> ) {
+	from_bytes_le( unsigned char const *ptr,
+	               std::index_sequence<Is...> ) noexcept {
 		constexpr auto f = []( unsigned char c, size_t n ) {
 			return static_cast<Unsigned>( c ) << ( 8U * n );
 		};
-		auto result = Unsigned{ ( f( ptr[Is], Is ) | ... ) };
+		auto result = static_cast<Unsigned>( ( f( ptr[Is], Is ) | ... ) );
 		return result;
 	}
 
 	template<typename Unsigned, std::size_t... Is>
 	DAW_ATTRIB_INLINE constexpr Unsigned
-	from_bytes_be( unsigned char const *ptr, std::index_sequence<Is...> ) {
+	from_bytes_be( unsigned char const *ptr,
+	               std::index_sequence<Is...> ) noexcept {
 		constexpr auto StartVal = sizeof( Unsigned ) - 1;
 		constexpr auto f = []( unsigned char c, size_t n ) {
 			return static_cast<Unsigned>( c ) << ( 8U * n );
 		};
-		auto result = Unsigned{ ( f( ptr[StartVal - Is], Is ) | ... ) };
+		auto result =
+		  static_cast<Unsigned>( ( f( ptr[StartVal - Is], Is ) | ... ) );
 		return result;
 	}
 
@@ -59,17 +74,12 @@ namespace daw::integers::sint_impl {
 		template<ValidIntType T>
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs, T rhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
-			DAW_IF_CONSTEVAL {
-				return lhs + rhs;
+			auto result = T{ };
+			if( DAW_UNLIKELY( wrapping_add( lhs, rhs, result ) ) ) {
+				DAW_UNLIKELY_BRANCH
+				on_signed_integer_overflow( );
 			}
-			else {
-				auto result = T{ };
-				if( DAW_UNLIKELY( wrapping_add( lhs, rhs, result ) ) ) {
-					DAW_UNLIKELY_BRANCH
-					on_signed_integer_overflow( );
-				}
-				return result;
-			}
+			return result;
 		}
 	} checked_add{ };
 
@@ -87,17 +97,12 @@ namespace daw::integers::sint_impl {
 		template<ValidIntType T>
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs, T rhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
-			DAW_IF_CONSTEVAL {
-				return lhs - rhs;
+			auto result = T{ };
+			if( DAW_UNLIKELY( wrapping_sub( lhs, rhs, result ) ) ) {
+				DAW_UNLIKELY_BRANCH
+				on_signed_integer_overflow( );
 			}
-			else {
-				auto result = T{ };
-				if( DAW_UNLIKELY( wrapping_sub( lhs, rhs, result ) ) ) {
-					DAW_UNLIKELY_BRANCH
-					on_signed_integer_overflow( );
-				}
-				return result;
-			}
+			return result;
 		}
 	} checked_sub{ };
 
@@ -115,17 +120,12 @@ namespace daw::integers::sint_impl {
 		template<ValidIntType T>
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs, T rhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
-			DAW_IF_CONSTEVAL {
-				return lhs * rhs;
+			auto result = T{ };
+			if( DAW_UNLIKELY( wrapping_mul( lhs, rhs, result ) ) ) {
+				DAW_UNLIKELY_BRANCH
+				on_signed_integer_overflow( );
 			}
-			else {
-				auto result = T{ };
-				if( DAW_UNLIKELY( wrapping_mul( lhs, rhs, result ) ) ) {
-					DAW_UNLIKELY_BRANCH
-					on_signed_integer_overflow( );
-				}
-				return result;
-			}
+			return result;
 		}
 	} checked_mul{ };
 
@@ -196,7 +196,8 @@ namespace daw::integers::sint_impl {
 #elif DAW_DEFAULT_SIGNED_CHECKING == 2
 			return wrapped_add( lhs, rhs );
 #else
-			return lhs + rhs;
+			return as<T>( sint_impl::as_next_wider_or_unsigned( lhs ) +
+			              sint_impl::as_next_wider_or_unsigned( rhs ) );
 #endif
 		}
 	} debug_checked_add{ };
@@ -210,7 +211,8 @@ namespace daw::integers::sint_impl {
 #elif DAW_DEFAULT_SIGNED_CHECKING == 2
 			return wrapped_sub( lhs, rhs );
 #else
-			return lhs - rhs;
+			return as<T>( sint_impl::as_next_wider_or_unsigned( lhs ) -
+										sint_impl::as_next_wider_or_unsigned( rhs ) );
 #endif
 		}
 	} debug_checked_sub{ };
@@ -224,7 +226,8 @@ namespace daw::integers::sint_impl {
 #elif DAW_DEFAULT_SIGNED_CHECKING == 2
 			return wrapped_mul( lhs, rhs );
 #else
-			return lhs * rhs;
+			return as<T>( sint_impl::as_next_wider_or_unsigned( lhs ) *
+										sint_impl::as_next_wider_or_unsigned( rhs ) );
 #endif
 		}
 	} debug_checked_mul{ };
@@ -271,13 +274,11 @@ namespace daw::integers::sint_impl {
 		template<SizeFits<std::int64_t> T>
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
-			if constexpr( sizeof( T ) < 4 ) {
-				return static_cast<T>( -static_cast<std::int32_t>( lhs ) );
-			} else if constexpr( sizeof( T ) < 8 ) {
-				return static_cast<T>( -static_cast<std::int64_t>( lhs ) );
-			} else {
-				return checked_mul( lhs, T{ -1 } );
+			if( lhs == min_value<T> ) {
+				on_signed_integer_overflow( );
+				return lhs;
 			}
+			return static_cast<T>( -lhs );
 		}
 	} checked_neg{ };
 
@@ -285,11 +286,10 @@ namespace daw::integers::sint_impl {
 		template<SizeFits<std::int64_t> T>
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
-
 #if DAW_DEFAULT_SIGNED_CHECKING == 0
 			return checked_neg( lhs );
 #else
-			return -lhs;
+			return static_cast<T>( -as_unsigned( lhs ) );
 #endif
 		}
 	} debug_checked_neg{ };
