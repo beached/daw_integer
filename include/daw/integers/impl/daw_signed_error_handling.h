@@ -30,7 +30,7 @@
 #endif
 
 namespace daw::integers {
-	enum class SignedIntegerErrorType { Overflow, DivideByZero };
+	enum class SignedIntegerErrorType { Overflow, DivideByZero, None };
 	using signed_int_error_handler_t = void ( * )( void *,
 	                                               SignedIntegerErrorType );
 

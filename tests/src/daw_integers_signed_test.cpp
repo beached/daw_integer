@@ -563,6 +563,7 @@ int main( ) try {
 	static_assert( ( -1_i8 ).shl_checked( 7_i8 ) == daw::i8::min( ) );
 
 	static_assert( daw::i8::min( ).shr_checked( 7_i8 ) == -1_i8 );
+	static_assert( daw::i64::min( ).mul_saturated( -1_i64 ) == daw::i64::max( ) );
 } catch( ... ) {
 	std::cerr << "Unexpected exception thrown\n" << std::flush;
 	throw;

@@ -153,9 +153,9 @@ namespace daw::integers {
 		/// order.
 		[[nodiscard]] static constexpr signed_integer
 		from_bytes_le( unsigned char const *ptr ) {
-			return signed_integer(
+			return signed_integer{
 			  daw::integers::sint_impl::from_bytes_le<value_type>(
-			    ptr, std::make_index_sequence<sizeof( value_type )>{ } ) );
+			    ptr, std::make_index_sequence<sizeof( value_type )>{ } ) };
 		}
 
 		/// @brief `from_bytes_be` function that creates an integer from a bytes
@@ -331,6 +331,58 @@ namespace daw::integers {
 			return result;
 		}
 
+		struct wrapping_result {
+			value_type value;
+			bool overflowed;
+		};
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr wrapping_result
+		add_overflowing( signed_integer const &rhs ) const {
+			wrapping_result result;
+			result.overflowed =
+			  sint_impl::wrapped_add( value( ), rhs.value( ), result.value );
+			return result;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr wrapping_result
+		sub_overflowing( signed_integer const &rhs ) const {
+			wrapping_result result;
+			result.overflowed =
+			  sint_impl::wrapped_sub( value( ), rhs.value( ), result.value );
+			return result;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr wrapping_result
+		mul_overflowing( signed_integer const &rhs ) const {
+			wrapping_result result;
+			result.overflowed =
+			  sint_impl::wrapped_mul( value( ), rhs.value( ), result.value );
+			return result;
+		}
+
+		struct wrapping_div_result {
+			value_type value;
+			SignedIntegerErrorType error;
+		};
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr wrapping_div_result
+		div_overflowing( signed_integer const &rhs ) const {
+			wrapping_div_result result;
+			result.error =
+			  sint_impl::wrapping_div( value( ), rhs.value( ), result.value );
+
+			return result;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr wrapping_div_result
+		rem_overflowing( signed_integer const &rhs ) const {
+			wrapping_div_result result;
+			result.error =
+			  sint_impl::wrapping_rem( value( ), rhs.value( ), result.value );
+
+			return result;
+		}
+
 		/// @brief add rhs to current value and return a new signed_integer.
 		/// Addition is checked and calls error handler on overflow.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
@@ -349,7 +401,7 @@ namespace daw::integers {
 		/// overflow checking is performed
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		add_unchecked( signed_integer const &rhs ) const {
-			return value( ) + rhs.value( );
+			return signed_integer{ value( ) + rhs.value( ) };
 		}
 
 		/// @brief saturated addition of rhs and current value and return a new
@@ -401,7 +453,7 @@ namespace daw::integers {
 		/// overflow checking.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		sub_unchecked( signed_integer const &rhs ) const {
-			return value( ) - rhs.value( );
+			return signed_integer{ value( ) - rhs.value( ) };
 		}
 
 		/// @brief Subtract rhs from this and return a new signed_integer.  On
@@ -530,6 +582,96 @@ namespace daw::integers {
 			  sint_impl::debug_checked_div( value( ), rhs.value( ) ) );
 		}
 
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		div_euclid( signed_integer const &rhs ) const {
+			signed_integer q = *this / rhs;
+			signed_integer const r = *this % rhs;
+			if( r.is_negative( ) ) {
+				if( rhs.is_positive( ) ) {
+					--q;
+				} else {
+					++q;
+				}
+			}
+			return q;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		div_euclid_checked( signed_integer const &rhs ) const {
+			if( rhs == signed_integer{ } ) {
+				on_signed_integer_div_by_zero( );
+				return *this;
+			}
+			bool overflow = false;
+			signed_integer q;
+			switch( sint_impl::wrapping_div(
+			  m_private.value, rhs.m_private.value, q.m_private.value ) ) {
+			case SignedIntegerErrorType::Overflow:
+				overflow = true;
+				break;
+			case SignedIntegerErrorType::DivideByZero:
+				on_signed_integer_div_by_zero( );
+				return *this;
+			default:
+				[[likely]] break;
+			}
+
+			signed_integer r;
+			switch( sint_impl::wrapping_rem(
+			  m_private.value, rhs.m_private.value, r.m_private.value ) ) {
+			case SignedIntegerErrorType::Overflow:
+				overflow = true;
+				break;
+			case SignedIntegerErrorType::DivideByZero:
+				on_signed_integer_div_by_zero( );
+				return *this;
+			default:
+				[[likely]] break;
+			}
+
+			if( r.is_negative( ) ) {
+				if( rhs.is_positive( ) ) {
+					overflow |= sint_impl::wrapping_sub(
+					  q.m_private.value, value_type{ 1 }, q.m_private.value );
+				} else {
+					overflow |= sint_impl::wrapping_add(
+					  q.m_private.value, value_type{ 1 }, q.m_private.value );
+				}
+			}
+			if( overflow ) {
+				on_signed_integer_overflow( );
+			}
+			return q;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		div_euclid_saturated( signed_integer const &rhs ) const {
+			signed_integer q = div_saturated( rhs );
+			signed_integer const r = rem_saturated( rhs );
+			if( r.is_negative( ) ) {
+				if( rhs.is_positive( ) ) {
+					q = q.sub_saturated( signed_integer{ 1 } );
+				} else {
+					q = q.add_saturated( signed_integer{ 1 } );
+				}
+			}
+			return q;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		div_euclid_wrapped( signed_integer const &rhs ) const {
+			signed_integer q = div_wrapped( rhs );
+			signed_integer const r = rem_wrapped( rhs );
+			if( r.is_negative( ) ) {
+				if( rhs.is_positive( ) ) {
+					q = q.sub_wrapped( signed_integer{ 1 } );
+				} else {
+					q = q.add_wrapped( signed_integer{ 1 } );
+				}
+			}
+			return q;
+		}
+
 		DAW_ATTRIB_INLINE constexpr signed_integer &
 		operator%=( signed_integer const &rhs ) {
 			m_private.value = sint_impl::debug_checked_rem( value( ), rhs.value( ) );
@@ -549,7 +691,7 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		rem_unchecked( signed_integer const &rhs ) const {
-			return value( ) % rhs.value( );
+			return signed_integer{ value( ) % rhs.value( ) };
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
@@ -559,6 +701,67 @@ namespace daw::integers {
 			}
 			return signed_integer{
 			  sint_impl::debug_checked_rem( value( ), rhs.value( ) ) };
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		rem_wrapped( signed_integer const &rhs ) const {
+			if( value( ) == min( ) and rhs.value( ) == value_type{ -1 } ) {
+				return signed_integer{ };
+			}
+			return signed_integer{
+			  sint_impl::debug_checked_rem( value( ), rhs.value( ) ) };
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		rem_euclid( signed_integer const &rhs ) const {
+			signed_integer r = *this % rhs;
+			if( r.is_negative( ) ) {
+				if( rhs.is_positive( ) ) {
+					r += rhs;
+				} else {
+					r -= rhs;
+				}
+			}
+			return r;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		rem_euclid_checked( signed_integer const &rhs ) const {
+			signed_integer r = rem_checked( rhs );
+			if( r.is_negative( ) ) {
+				if( rhs.is_positive( ) ) {
+					r = r.add_checked( rhs );
+				} else {
+					r = r.sub_checked( rhs );
+				}
+			}
+			return r;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		rem_euclid_saturated( signed_integer const &rhs ) const {
+			signed_integer r = rem_saturated( rhs );
+			if( r.is_negative( ) ) {
+				if( rhs.is_positive( ) ) {
+					r = r.add_saturated( rhs );
+				} else {
+					r = r.sub_saturated( rhs );
+				}
+			}
+			return r;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		rem_euclid_unchecked( signed_integer const &rhs ) const {
+			signed_integer r = rem_unchecked( rhs );
+			if( r.is_negative( ) ) {
+				if( rhs.is_positive( ) ) {
+					r = r.add_unchecked( rhs );
+				} else {
+					r = r.sub_unchecked( rhs );
+				}
+			}
+			return r;
 		}
 
 		DAW_ATTRIB_INLINE constexpr signed_integer &
@@ -796,6 +999,37 @@ namespace daw::integers {
 			return sint_impl::pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
 				return lhs.mul_saturated( rhs );
 			} );
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer abs( ) const {
+			if( is_negative( ) ) {
+				return *this * signed_integer{ -1 };
+			}
+			return *this;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		abs_checked( ) const {
+			if( is_negative( ) ) {
+				return mul_checked( signed_integer{ -1 } );
+			}
+			return *this;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		abs_wrapped( ) const {
+			if( is_negative( ) ) {
+				return mul_wrapped( signed_integer{ -1 } );
+			}
+			return *this;
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		abs_saturated( ) const {
+			if( is_negative( ) ) {
+				return mul_saturated( signed_integer{ -1 } );
+			}
+			return *this;
 		}
 
 		[[nodiscard]] constexpr bool is_positive( ) const {

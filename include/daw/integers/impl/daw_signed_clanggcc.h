@@ -20,6 +20,7 @@
 #include <daw/daw_int_cmp.h>
 #include <daw/daw_is_constant_evaluated.h>
 #include <daw/daw_likely.h>
+#include <daw/daw_unreachable.h>
 #include <daw/traits/daw_traits_is_one_of.h>
 
 #include <algorithm>
@@ -100,49 +101,56 @@ namespace daw::integers::sint_impl {
 		return __builtin_mul_overflow( a, b, &result );
 	}
 
+	template<typename SignedInteger>
+	DAW_ATTRIB_INLINE constexpr SignedIntegerErrorType
+	wrapping_div( SignedInteger lhs, SignedInteger rhs, SignedInteger &result ) {
+		if( rhs == 0 ) {
+			result = lhs;
+			[[unlikely]] return SignedIntegerErrorType::DivideByZero;
+		}
+		if( lhs == min_value<SignedInteger> and rhs == SignedInteger{ -1 } ) {
+			[[unlikely]] result = min_value<SignedInteger>;
+			return SignedIntegerErrorType::Overflow;
+		}
+		result = lhs / rhs;
+		return SignedIntegerErrorType::None;
+	}
+
+	template<typename SignedInteger>
+	DAW_ATTRIB_INLINE constexpr SignedIntegerErrorType
+	wrapping_rem( SignedInteger lhs, SignedInteger rhs, SignedInteger &result ) {
+		if( rhs == 0 ) {
+			result = lhs;
+			[[unlikely]] return SignedIntegerErrorType::DivideByZero;
+		}
+		if( lhs == min_value<SignedInteger> and rhs == SignedInteger{ -1 } ) {
+			[[unlikely]] result = SignedInteger{ };
+			return SignedIntegerErrorType::Overflow;
+		}
+		result = lhs % rhs;
+		return SignedIntegerErrorType::None;
+	}
+
 	inline constexpr struct checked_div_t {
 		explicit checked_div_t( ) = default;
 
 		template<ValidIntType T>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
-			DAW_IF_CONSTEVAL {
-				return lhs / rhs;
+			T result;
+			SignedIntegerErrorType r = wrapping_div( lhs, rhs, result );
+			switch( r ) {
+			case SignedIntegerErrorType::None:
+				return result;
+				break;
+			case SignedIntegerErrorType::Overflow:
+				on_signed_integer_overflow( );
+				return result;
+				break;
+			case SignedIntegerErrorType::DivideByZero:
+				on_signed_integer_div_by_zero( );
+				return result;
 			}
-			else {
-				if( DAW_UNLIKELY( rhs == 0 ) ) {
-					on_signed_integer_div_by_zero( );
-					return lhs;
-				}
-				if constexpr( sizeof( T ) == 8 ) {
-#if defined( DAW_HAS_INT128 )
-					auto const l = static_cast<daw::int128_t>( lhs );
-					auto const r = static_cast<daw::int128_t>( rhs );
-					auto const res128 = l / r;
-					auto const res = static_cast<T>( res128 );
-					if( DAW_UNLIKELY( res != res128 ) ) {
-						on_signed_integer_overflow( );
-					}
-					return res;
-#else
-					if( DAW_UNLIKELY( rhs == -1 and
-					                  lhs == daw::numeric_limits<T>::min( ) ) ) {
-						on_signed_integer_overflow( );
-						return daw::numeric_limits<T>::max( );
-					}
-					return lhs / rhs;
-#endif
-				} else {
-					static_assert( sizeof( T ) < 8 );
-					auto const l = static_cast<std::int64_t>( lhs );
-					auto const r = static_cast<std::int64_t>( rhs );
-					auto const res64 = l / r;
-					auto const res = static_cast<T>( res64 );
-					if( DAW_UNLIKELY( res != res64 ) ) {
-						on_signed_integer_overflow( );
-					}
-					return res;
-				}
-			}
+			DAW_UNREACHABLE( );
 		}
 	} checked_div{ };
 

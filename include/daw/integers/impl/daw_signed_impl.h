@@ -28,7 +28,7 @@ namespace daw::integers::sint_impl {
 		constexpr auto f = []( unsigned char c, size_t n ) {
 			return static_cast<Unsigned>( c ) << ( 8U * n );
 		};
-		auto result = static_cast<Unsigned>( ( f( ptr[Is], Is ) | ... ) );
+		auto result = Unsigned{ ( f( ptr[Is], Is ) | ... ) };
 		return result;
 	}
 
@@ -39,8 +39,7 @@ namespace daw::integers::sint_impl {
 		constexpr auto f = []( unsigned char c, size_t n ) {
 			return static_cast<Unsigned>( c ) << ( 8U * n );
 		};
-		auto result =
-		  static_cast<Unsigned>( ( f( ptr[StartVal - Is], Is ) | ... ) );
+		auto result = Unsigned{ ( f( ptr[StartVal - Is], Is ) | ... ) };
 		return result;
 	}
 
@@ -272,7 +271,13 @@ namespace daw::integers::sint_impl {
 		template<SizeFits<std::int64_t> T>
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
-			return checked_mul( lhs, T{ -1 } );
+			if constexpr( sizeof( T ) < 4 ) {
+				return static_cast<T>( -static_cast<std::int32_t>( lhs ) );
+			} else if constexpr( sizeof( T ) < 8 ) {
+				return static_cast<T>( -static_cast<std::int64_t>( lhs ) );
+			} else {
+				return checked_mul( lhs, T{ -1 } );
+			}
 		}
 	} checked_neg{ };
 
