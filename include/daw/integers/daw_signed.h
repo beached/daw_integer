@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "impl/daw_integer_fwd.h"
 #include "impl/daw_signed_error_handling.h"
 #include "impl/daw_signed_impl.h"
 
@@ -33,9 +34,6 @@
 #include <type_traits>
 
 namespace daw::integers {
-	template<std::size_t /*Bits*/>
-	struct signed_integer;
-
 	namespace sint_impl {
 		template<std::size_t /*Bits*/>
 		struct signed_integer_type;
@@ -289,7 +287,7 @@ namespace daw::integers {
 		// current instance.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		negate_unchecked( ) const {
-			return signed_integer( as<value_type>( -as_unsigned( value( ) ) ),
+			return signed_integer( as<value_type>( -daw::as_unsigned( value( ) ) ),
 			                       unchecked );
 		}
 
@@ -298,7 +296,7 @@ namespace daw::integers {
 		// current instance.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		negate_wrapped( ) const {
-			return signed_integer{ as<value_type>( -as_unsigned( value( ) ) ),
+			return signed_integer{ as<value_type>( -daw::as_unsigned( value( ) ) ),
 			                       unchecked };
 		}
 
@@ -885,7 +883,7 @@ namespace daw::integers {
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		rotate_left( std::size_t n ) const {
 			return signed_integer(
-			  as<value_type>( std::rotl( as_unsigned( value( ) ),
+			  as<value_type>( std::rotl( daw::as_unsigned( value( ) ),
 			                             n % daw::bit_count_v<value_type> ) ),
 			  unchecked );
 		}
@@ -893,7 +891,7 @@ namespace daw::integers {
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
 		rotate_right( std::size_t n ) const {
 			return signed_integer(
-			  as<value_type>( std::rotr( as_unsigned( value( ) ),
+			  as<value_type>( std::rotr( daw::as_unsigned( value( ) ),
 			                             n % daw::bit_count_v<value_type> ) ),
 			  unchecked );
 		}
@@ -1064,6 +1062,29 @@ namespace daw::integers {
 
 		[[nodiscard]] constexpr bool is_negative( ) const {
 			return m_private.value < value_type{ };
+		}
+
+		/// @brief Convert to an unsigned_integer of the same width, like a
+		/// static_cast.  The two's complement bits are kept, so negative values
+		/// wrap.  Requires daw/integers/daw_unsigned.h, or include
+		/// daw/daw_integer.h
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer<Bits>
+		as_unsigned( ) const noexcept {
+			return unsigned_integer<Bits>( daw::as_unsigned( value( ) ),
+			                               unsigned_integer<Bits>::unchecked );
+		}
+
+		/// @brief Convert to an unsigned_integer of the same width.  Negative
+		/// values call the overflow handler and the two's complement bits are
+		/// returned.  Requires daw/integers/daw_unsigned.h, or include
+		/// daw/daw_integer.h
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer<Bits>
+		as_exact_unsigned( ) const {
+			if( DAW_UNLIKELY( is_negative( ) ) ) {
+				DAW_UNLIKELY_BRANCH
+				on_integer_overflow( );
+			}
+			return as_unsigned( );
 		}
 
 		[[nodiscard]] constexpr signed_integer signum( ) const {

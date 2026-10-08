@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "daw/integers/impl/daw_integer_error_handling.h"
+
 #include <daw/daw_arith_traits.h>
 #include <daw/daw_attributes.h>
 #include <daw/daw_check_exceptions.h>
@@ -30,110 +32,52 @@
 #endif
 
 namespace daw::integers {
-	enum class SignedIntegerErrorType { Overflow, DivideByZero, None };
-	using signed_int_error_handler_t = void ( * )( void *,
-	                                               SignedIntegerErrorType );
-
-	namespace sint_impl {
-		inline auto &get_signed_integer_overflow_handler( ) {
-			static DAW_CONSTINIT struct handler_t {
-				signed_int_error_handler_t cb = nullptr;
-				void *data = nullptr;
-			} handler{ };
-			return handler;
-		}
-
-		inline auto &get_signed_integer_div_by_zero_handler( ) {
-			static DAW_CONSTINIT struct handler_t {
-				signed_int_error_handler_t cb = nullptr;
-				void *data = nullptr;
-			} handler{ };
-			return handler;
-		}
-	} // namespace sint_impl
+	// The signed names are kept for compatibility.  Error handling is shared
+	// with unsigned_integer, see daw_integer_error_handling.h
+	using SignedIntegerErrorType = IntegerErrorType;
+	using signed_int_error_handler_t = integer_error_handler_t;
+	using signed_integer_overflow_exception = integer_overflow_exception;
+	using signed_integer_div_by_zero_exception = integer_div_by_zero_exception;
 
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
-	DAW_ATTRIB_NOINLINE inline void register_signed_overflow_handler(
-	  signed_int_error_handler_t handler = nullptr,
-	  void *data = nullptr ) noexcept {
-		sint_impl::get_signed_integer_overflow_handler( ).cb = handler;
-		sint_impl::get_signed_integer_overflow_handler( ).data = data;
+	DAW_ATTRIB_INLINE void register_signed_overflow_handler(
+	  integer_error_handler_t handler = nullptr, void *data = nullptr ) noexcept {
+		register_integer_overflow_handler( handler, data );
 	}
 
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
 	template<typename Func>
 	requires( std::is_class_v<Func> and
-	          std::is_invocable_v<Func, SignedIntegerErrorType> )
-	DAW_ATTRIB_NOINLINE inline void
+	          std::is_invocable_v<Func, IntegerErrorType> )
+	DAW_ATTRIB_INLINE void
 	register_signed_overflow_handler( Func &handler ) noexcept {
-		if constexpr( std::is_const_v<Func> ) {
-			register_signed_overflow_handler(
-			  +[]( void *vhnd, SignedIntegerErrorType error_type ) {
-				  (void)( *static_cast<Func const *>( vhnd ) )( error_type );
-			  },
-			  const_cast<void *>(
-			    static_cast<void const *>( std::addressof( handler ) ) ) );
-		} else {
-			register_signed_overflow_handler(
-			  +[]( void *vhnd, SignedIntegerErrorType error_type ) {
-				  (void)( *static_cast<Func *>( vhnd ) )( error_type );
-			  },
-			  static_cast<void *>( std::addressof( handler ) ) );
-		}
+		register_integer_overflow_handler( handler );
 	}
 
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
-	DAW_ATTRIB_NOINLINE inline void register_signed_div_by_zero_handler(
-	  signed_int_error_handler_t handler = nullptr,
-	  void *data = nullptr ) noexcept {
-		sint_impl::get_signed_integer_div_by_zero_handler( ).cb = handler;
-		sint_impl::get_signed_integer_div_by_zero_handler( ).data = data;
+	DAW_ATTRIB_INLINE void register_signed_div_by_zero_handler(
+	  integer_error_handler_t handler = nullptr, void *data = nullptr ) noexcept {
+		register_integer_div_by_zero_handler( handler, data );
 	}
 
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
 	template<typename Func>
 	requires( std::is_class_v<Func> and
-	          std::is_invocable_v<Func, SignedIntegerErrorType> )
-	DAW_ATTRIB_NOINLINE inline void
+	          std::is_invocable_v<Func, IntegerErrorType> )
+	DAW_ATTRIB_INLINE void
 	register_signed_div_by_zero_handler( Func &handler ) noexcept {
-		if constexpr( std::is_const_v<Func> ) {
-			register_signed_div_by_zero_handler(
-			  +[]( void *vhnd, SignedIntegerErrorType error_type ) {
-				  (void)( *static_cast<Func const *>( vhnd ) )( error_type );
-			  },
-			  const_cast<void *>(
-			    static_cast<void const *>( std::addressof( handler ) ) ) );
-		} else {
-			register_signed_div_by_zero_handler(
-			  +[]( void *vhnd, SignedIntegerErrorType error_type ) {
-				  (void)( *static_cast<Func *>( vhnd ) )( error_type );
-			  },
-			  static_cast<void *>( std::addressof( handler ) ) );
-		}
+		register_integer_div_by_zero_handler( handler );
 	}
 
-	struct signed_integer_overflow_exception : std::exception {};
-	struct signed_integer_div_by_zero_exception : std::exception {};
-
-	DAW_ATTRIB_NOINLINE inline void on_signed_integer_overflow( ) {
-		auto handler = sint_impl::get_signed_integer_overflow_handler( );
-		if( handler.cb ) {
-			handler.cb( handler.data, SignedIntegerErrorType::Overflow );
-			return;
-		}
-		DAW_THROW_OR_TERMINATE_NA( signed_integer_overflow_exception );
+	DAW_ATTRIB_INLINE void on_signed_integer_overflow( ) {
+		on_integer_overflow( );
 	}
 
-	DAW_ATTRIB_NOINLINE inline void on_signed_integer_div_by_zero( ) {
-		auto handler = sint_impl::get_signed_integer_div_by_zero_handler( );
-		if( handler.cb ) {
-			handler.cb( handler.data, SignedIntegerErrorType::DivideByZero );
-			return;
-		}
-		DAW_THROW_OR_TERMINATE_NA( signed_integer_div_by_zero_exception );
+	DAW_ATTRIB_INLINE void on_signed_integer_div_by_zero( ) {
+		on_integer_div_by_zero( );
 	}
 } // namespace daw::integers

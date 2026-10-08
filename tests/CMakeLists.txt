@@ -100,3 +100,23 @@ foreach( mode 0 1 2 )
   add_test( NAME signed_checking_mode_${mode}_test_bin
             COMMAND signed_checking_mode_${mode}_test_bin )
 endforeach( )
+
+add_executable( unsigned_test_bin src/daw_integers_unsigned_test.cpp )
+target_link_libraries( unsigned_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME unsigned_test_bin COMMAND unsigned_test_bin )
+
+# Same source built in each DAW_DEFAULT_UNSIGNED_CHECKING mode
+foreach( mode 0 1 2 )
+  add_executable( unsigned_checking_mode_${mode}_test_bin
+                  src/daw_integers_unsigned_checking_modes_test.cpp )
+  target_link_libraries( unsigned_checking_mode_${mode}_test_bin
+                         PRIVATE daw_integer_test_lib )
+  target_compile_definitions( unsigned_checking_mode_${mode}_test_bin
+                              PRIVATE DAW_DEFAULT_UNSIGNED_CHECKING=${mode} )
+  add_test( NAME unsigned_checking_mode_${mode}_test_bin
+            COMMAND unsigned_checking_mode_${mode}_test_bin )
+endforeach( )
+
+add_executable( sign_conversion_test_bin src/daw_integers_sign_conversion_test.cpp )
+target_link_libraries( sign_conversion_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME sign_conversion_test_bin COMMAND sign_conversion_test_bin )
