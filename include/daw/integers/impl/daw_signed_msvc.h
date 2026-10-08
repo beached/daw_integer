@@ -193,19 +193,19 @@ namespace daw::integers::sint_impl {
 
 		template<ValidIntType T>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
-			if( rhs == 0 ) {
+			// A negative rhs becomes a large unsigned value, so one compare
+			// covers both negative and too large shift counts
+			if( DAW_UNLIKELY( static_cast<std::make_unsigned_t<T>>( rhs ) >=
+			                  daw::bit_count_v<T> ) ) {
+				DAW_UNLIKELY_BRANCH
+				on_signed_integer_overflow( );
+				auto const count = unsigned_magnitude( rhs );
+				if( rhs < T{ } and count < daw::bit_count_v<T> ) {
+					return static_cast<T>( lhs >> count );
+				}
 				return lhs;
 			}
-			auto const count = unsigned_magnitude( rhs );
-			if( DAW_UNLIKELY( count >= daw::bit_count_v<T> ) ) {
-				on_signed_integer_overflow( );
-				return lhs;
-			}
-			if( rhs < 0 ) {
-				on_signed_integer_overflow( );
-				return static_cast<T>( lhs >> count );
-			}
-			return static_cast<T>( lhs << count );
+			return static_cast<T>( lhs << rhs );
 		}
 	} checked_shl{ };
 
@@ -214,19 +214,19 @@ namespace daw::integers::sint_impl {
 
 		template<ValidIntType T>
 		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs, T rhs ) const {
-			if( rhs == 0 ) {
+			// A negative rhs becomes a large unsigned value, so one compare
+			// covers both negative and too large shift counts
+			if( DAW_UNLIKELY( static_cast<std::make_unsigned_t<T>>( rhs ) >=
+			                  daw::bit_count_v<T> ) ) {
+				DAW_UNLIKELY_BRANCH
+				on_signed_integer_overflow( );
+				auto const count = unsigned_magnitude( rhs );
+				if( rhs < T{ } and count < daw::bit_count_v<T> ) {
+					return static_cast<T>( lhs << count );
+				}
 				return lhs;
 			}
-			auto const count = unsigned_magnitude( rhs );
-			if( DAW_UNLIKELY( count >= daw::bit_count_v<T> ) ) {
-				on_signed_integer_overflow( );
-				return lhs;
-			}
-			if( rhs < 0 ) {
-				on_signed_integer_overflow( );
-				return static_cast<T>( lhs << count );
-			}
-			return static_cast<T>( lhs >> count );
+			return static_cast<T>( lhs >> rhs );
 		}
 	} checked_shr{ };
 } // namespace daw::integers::sint_impl

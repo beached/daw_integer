@@ -212,7 +212,7 @@ namespace daw::integers::sint_impl {
 			return wrapped_sub( lhs, rhs );
 #else
 			return as<T>( sint_impl::as_next_wider_or_unsigned( lhs ) -
-										sint_impl::as_next_wider_or_unsigned( rhs ) );
+			              sint_impl::as_next_wider_or_unsigned( rhs ) );
 #endif
 		}
 	} debug_checked_sub{ };
@@ -227,7 +227,7 @@ namespace daw::integers::sint_impl {
 			return wrapped_mul( lhs, rhs );
 #else
 			return as<T>( sint_impl::as_next_wider_or_unsigned( lhs ) *
-										sint_impl::as_next_wider_or_unsigned( rhs ) );
+			              sint_impl::as_next_wider_or_unsigned( rhs ) );
 #endif
 		}
 	} debug_checked_mul{ };
@@ -239,7 +239,7 @@ namespace daw::integers::sint_impl {
 #if DAW_DEFAULT_SIGNED_CHECKING == 0
 			return checked_div( lhs, rhs );
 #else
-			return lhs / rhs;
+			return static_cast<T>( lhs / rhs );
 #endif
 		}
 	} debug_checked_div{ };
@@ -265,7 +265,7 @@ namespace daw::integers::sint_impl {
 #if DAW_DEFAULT_SIGNED_CHECKING == 0
 			return checked_rem( lhs, rhs );
 #else
-			return lhs % rhs;
+			return static_cast<T>( lhs % rhs );
 #endif
 		}
 	} debug_checked_rem{ };
@@ -275,7 +275,7 @@ namespace daw::integers::sint_impl {
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
 			if( lhs == min_value<T> ) {
-				on_signed_integer_overflow( );
+				[[unlikely]] on_signed_integer_overflow( );
 				return lhs;
 			}
 			return static_cast<T>( -lhs );
@@ -301,7 +301,7 @@ namespace daw::integers::sint_impl {
 #if DAW_DEFAULT_SIGNED_CHECKING == 0
 			return checked_shl( lhs, rhs );
 #else
-			return lhs << rhs;
+			return static_cast<T>( lhs << rhs );
 #endif
 		}
 	} debug_checked_shl{ };
@@ -313,7 +313,7 @@ namespace daw::integers::sint_impl {
 #if DAW_DEFAULT_SIGNED_CHECKING == 0
 			return checked_shr( lhs, rhs );
 #else
-			return lhs >> rhs;
+			return static_cast<T>( lhs >> rhs );
 #endif
 		}
 	} debug_checked_shr{ };
