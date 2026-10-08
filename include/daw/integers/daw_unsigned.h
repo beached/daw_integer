@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "impl/daw_integer_error_handling.h"
-#include "impl/daw_integer_fwd.h"
-#include "impl/daw_unsigned_impl.h"
+#include "daw/integers/impl/daw_integer_error_handling.h"
+#include "daw/integers/impl/daw_integer_fwd.h"
+#include "daw/integers/impl/daw_unsigned_impl.h"
 
 #include <daw/daw_arith_traits.h>
 #include <daw/daw_as.h>
@@ -28,6 +28,7 @@
 #include <bit>
 #include <climits>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <type_traits>
 
@@ -75,8 +76,7 @@ namespace daw::integers {
 
 		template<std::size_t Bits>
 		DAW_ATTRIB_FLATINLINE constexpr unsigned_integer<Bits>
-		pow_impl( unsigned_integer<Bits> base, unsigned exp,
-		          auto &&multiplier ) {
+		pow_impl( unsigned_integer<Bits> base, unsigned exp, auto &&multiplier ) {
 			auto result = unsigned_integer<Bits>{ 1U };
 
 			while( exp != 0 ) {
@@ -367,14 +367,16 @@ namespace daw::integers {
 		/// Addition is checked and calls error handler on overflow.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
 		add_checked( unsigned_integer const &rhs ) const {
-			return unsigned_integer( uint_impl::checked_add( value( ), rhs.value( ) ) );
+			return unsigned_integer(
+			  uint_impl::checked_add( value( ), rhs.value( ) ) );
 		}
 
 		/// @brief add rhs to current value and return a new unsigned_integer.
 		/// Addition is wrapped on overflow.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
 		add_wrapped( unsigned_integer const &rhs ) const {
-			return unsigned_integer( uint_impl::wrapped_add( value( ), rhs.value( ) ) );
+			return unsigned_integer(
+			  uint_impl::wrapped_add( value( ), rhs.value( ) ) );
 		}
 
 		/// @brief add rhs to current value and return a new unsigned_integer. No
@@ -420,14 +422,16 @@ namespace daw::integers {
 		/// Checked for overflow.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
 		sub_checked( unsigned_integer const &rhs ) const {
-			return unsigned_integer( uint_impl::checked_sub( value( ), rhs.value( ) ) );
+			return unsigned_integer(
+			  uint_impl::checked_sub( value( ), rhs.value( ) ) );
 		}
 
 		/// @brief Subtract rhs from this and return a new unsigned_integer.  On
 		/// overflow value is wrapped
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
 		sub_wrapped( unsigned_integer const &rhs ) const {
-			return unsigned_integer( uint_impl::wrapped_sub( value( ), rhs.value( ) ) );
+			return unsigned_integer(
+			  uint_impl::wrapped_sub( value( ), rhs.value( ) ) );
 		}
 
 		/// @brief Subtract rhs from this and return a new unsigned_integer.  No
@@ -481,14 +485,16 @@ namespace daw::integers {
 		/// unsigned_integer
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
 		mul_checked( unsigned_integer const &rhs ) const {
-			return unsigned_integer( uint_impl::checked_mul( value( ), rhs.value( ) ) );
+			return unsigned_integer(
+			  uint_impl::checked_mul( value( ), rhs.value( ) ) );
 		}
 
 		/// @brief Perform wrapped multiplication with rhs and return a new
 		/// unsigned_integer
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
 		mul_wrapped( unsigned_integer const &rhs ) const {
-			return unsigned_integer( uint_impl::wrapped_mul( value( ), rhs.value( ) ) );
+			return unsigned_integer(
+			  uint_impl::wrapped_mul( value( ), rhs.value( ) ) );
 		}
 
 		/// @brief Perform unchecked multiplication with rhs and return a new
@@ -524,7 +530,8 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
 		div_checked( unsigned_integer const &rhs ) const {
-			return unsigned_integer( uint_impl::checked_div( value( ), rhs.value( ) ) );
+			return unsigned_integer(
+			  uint_impl::checked_div( value( ), rhs.value( ) ) );
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
@@ -583,7 +590,8 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
 		rem_checked( unsigned_integer const &rhs ) const {
-			return unsigned_integer( uint_impl::checked_rem( value( ), rhs.value( ) ) );
+			return unsigned_integer(
+			  uint_impl::checked_rem( value( ), rhs.value( ) ) );
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
@@ -642,7 +650,8 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
 		shl_checked( unsigned_integer const &rhs ) const {
-			return unsigned_integer( uint_impl::checked_shl( value( ), rhs.value( ) ) );
+			return unsigned_integer(
+			  uint_impl::checked_shl( value( ), rhs.value( ) ) );
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
@@ -687,7 +696,8 @@ namespace daw::integers {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
 		shr_checked( unsigned_integer const &rhs ) const {
-			return unsigned_integer( uint_impl::checked_shr( value( ), rhs.value( ) ) );
+			return unsigned_integer(
+			  uint_impl::checked_shr( value( ), rhs.value( ) ) );
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
@@ -809,9 +819,9 @@ namespace daw::integers {
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 		count_trailing_zeros( ) const noexcept {
 			if constexpr( Bits == 8 or Bits == 16 ) {
-				return std::min(
-				  { as<std::uint32_t>( bit_count_v<value_type> ),
-				    daw::cxmath::count_trailing_zeros( as<std::uint32_t>( value( ) ) ) } );
+				return std::min( { as<std::uint32_t>( bit_count_v<value_type> ),
+				                   daw::cxmath::count_trailing_zeros(
+				                     as<std::uint32_t>( value( ) ) ) } );
 			} else {
 				return daw::cxmath::count_trailing_zeros( value( ) );
 			}
@@ -852,7 +862,8 @@ namespace daw::integers {
 
 		/// @brief compute pow using current value as base and pow as exponent.
 		/// Overflow is never checked
-		[[nodiscard]] constexpr unsigned_integer pow_unchecked( unsigned pow ) const {
+		[[nodiscard]] constexpr unsigned_integer
+		pow_unchecked( unsigned pow ) const {
 			return uint_impl::pow_impl( *this, pow, []( auto &&lhs, auto &&rhs ) {
 				return lhs.mul_unchecked( rhs );
 			} );
@@ -1467,6 +1478,17 @@ namespace std {
 		[[nodiscard]] static constexpr daw::integers::unsigned_integer<Bits>
 		denorm_min( ) noexcept {
 			return daw::integers::unsigned_integer<Bits>{ };
+		}
+	};
+
+	/// std::hash support.  Hashes the same as the underlying value_type
+	template<std::size_t Bits>
+	struct hash<daw::integers::unsigned_integer<Bits>> {
+		[[nodiscard]] std::size_t
+		operator( )( daw::integers::unsigned_integer<Bits> v ) const noexcept {
+			return std::hash<
+			  typename daw::integers::unsigned_integer<Bits>::value_type>{ }(
+			  v.value( ) );
 		}
 	};
 } // namespace std

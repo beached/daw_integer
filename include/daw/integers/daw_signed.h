@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "impl/daw_integer_fwd.h"
-#include "impl/daw_signed_error_handling.h"
-#include "impl/daw_signed_impl.h"
+#include "daw/integers/impl/daw_integer_fwd.h"
+#include "daw/integers/impl/daw_signed_error_handling.h"
+#include "daw/integers/impl/daw_signed_impl.h"
 
 #include <daw/daw_arith_traits.h>
 #include <daw/daw_as.h>
@@ -30,6 +30,7 @@
 #include <climits>
 #include <cstdint>
 #include <exception>
+#include <functional>
 #include <limits>
 #include <type_traits>
 
@@ -1111,7 +1112,7 @@ namespace daw::integers {
 		return result;
 	}
 
-	template<std::size_t Lhs, typename Rhs>
+	template<std::size_t Lhs, sint_impl::SignedIntegral Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator+( signed_integer<Lhs> lhs, Rhs rhs ) {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
@@ -1122,7 +1123,7 @@ namespace daw::integers {
 		return result;
 	}
 
-	template<typename Lhs, std::size_t Rhs>
+	template<sint_impl::SignedIntegral Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator+( Lhs lhs, signed_integer<Rhs> rhs ) {
 		using lhs_t = Lhs;
@@ -1147,7 +1148,7 @@ namespace daw::integers {
 		return result;
 	}
 
-	template<std::size_t Lhs, typename Rhs>
+	template<std::size_t Lhs, sint_impl::SignedIntegral Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator-( signed_integer<Lhs> lhs, Rhs rhs ) {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
@@ -1159,7 +1160,7 @@ namespace daw::integers {
 		return result;
 	}
 
-	template<typename Lhs, std::size_t Rhs>
+	template<sint_impl::SignedIntegral Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator-( Lhs lhs, signed_integer<Rhs> rhs ) {
 		using lhs_t = Lhs;
@@ -1184,7 +1185,7 @@ namespace daw::integers {
 		return result;
 	}
 
-	template<std::size_t Lhs, typename Rhs>
+	template<std::size_t Lhs, sint_impl::SignedIntegral Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator*( signed_integer<Lhs> lhs, Rhs rhs ) {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
@@ -1195,7 +1196,7 @@ namespace daw::integers {
 		return result;
 	}
 
-	template<typename Lhs, std::size_t Rhs>
+	template<sint_impl::SignedIntegral Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator*( Lhs lhs, signed_integer<Rhs> rhs ) {
 		using lhs_t = Lhs;
@@ -1218,7 +1219,7 @@ namespace daw::integers {
 		return result;
 	}
 
-	template<std::size_t Lhs, typename Rhs>
+	template<std::size_t Lhs, sint_impl::SignedIntegral Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator/( signed_integer<Lhs> lhs, Rhs rhs ) {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
@@ -1229,7 +1230,7 @@ namespace daw::integers {
 		return result;
 	}
 
-	template<typename Lhs, std::size_t Rhs>
+	template<sint_impl::SignedIntegral Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator/( Lhs lhs, signed_integer<Rhs> rhs ) {
 		using lhs_t = Lhs;
@@ -1252,7 +1253,7 @@ namespace daw::integers {
 		return result;
 	}
 
-	template<std::size_t Lhs, typename Rhs>
+	template<std::size_t Lhs, sint_impl::SignedIntegral Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator%( signed_integer<Lhs> lhs, Rhs rhs ) {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
@@ -1263,7 +1264,7 @@ namespace daw::integers {
 		return result;
 	}
 
-	template<typename Lhs, std::size_t Rhs>
+	template<sint_impl::SignedIntegral Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator%( Lhs lhs, signed_integer<Rhs> rhs ) {
 		using lhs_t = Lhs;
@@ -1284,7 +1285,7 @@ namespace daw::integers {
 		return result_t( lhs.m_private.value ) <<= result_t( rhs.value( ) );
 	}
 
-	template<std::size_t Lhs, typename Rhs>
+	template<std::size_t Lhs, sint_impl::SignedIntegral Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator<<( signed_integer<Lhs> lhs, Rhs rhs ) {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
@@ -1293,7 +1294,7 @@ namespace daw::integers {
 		return result_t( lhs.m_private.value ) <<= result_t( rhs );
 	}
 
-	template<typename Lhs, std::size_t Rhs>
+	template<sint_impl::SignedIntegral Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator<<( Lhs lhs, signed_integer<Rhs> rhs ) {
 		using lhs_t = Lhs;
@@ -1312,7 +1313,7 @@ namespace daw::integers {
 		return result_t( lhs.m_private.value ) >>= result_t( rhs.value( ) );
 	}
 
-	template<std::size_t Lhs, typename Rhs>
+	template<std::size_t Lhs, sint_impl::SignedIntegral Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator>>( signed_integer<Lhs> lhs, Rhs rhs ) {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
@@ -1321,7 +1322,7 @@ namespace daw::integers {
 		return result_t( lhs.m_private.value ) >>= result_t( rhs );
 	}
 
-	template<typename Lhs, std::size_t Rhs>
+	template<sint_impl::SignedIntegral Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator>>( Lhs lhs, signed_integer<Rhs> rhs ) {
 		using lhs_t = Lhs;
@@ -1340,7 +1341,7 @@ namespace daw::integers {
 		return result_t( lhs.m_private.value ) |= result_t( rhs.value( ) );
 	}
 
-	template<std::size_t Lhs, typename Rhs>
+	template<std::size_t Lhs, sint_impl::SignedIntegral Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator|( signed_integer<Lhs> lhs, Rhs rhs ) {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
@@ -1349,7 +1350,7 @@ namespace daw::integers {
 		return result_t( lhs.m_private.value ) |= result_t( rhs );
 	}
 
-	template<typename Lhs, std::size_t Rhs>
+	template<sint_impl::SignedIntegral Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator|( Lhs lhs, signed_integer<Rhs> rhs ) {
 		using lhs_t = Lhs;
@@ -1368,7 +1369,7 @@ namespace daw::integers {
 		return result_t( lhs.m_private.value ) &= result_t( rhs.value( ) );
 	}
 
-	template<std::size_t Lhs, typename Rhs>
+	template<std::size_t Lhs, sint_impl::SignedIntegral Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator&( signed_integer<Lhs> lhs, Rhs rhs ) {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
@@ -1377,7 +1378,7 @@ namespace daw::integers {
 		return result_t( lhs.m_private.value ) &= result_t( rhs );
 	}
 
-	template<typename Lhs, std::size_t Rhs>
+	template<sint_impl::SignedIntegral Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator&( Lhs lhs, signed_integer<Rhs> rhs ) {
 		using lhs_t = Lhs;
@@ -1396,7 +1397,7 @@ namespace daw::integers {
 		return result_t( lhs.m_private.value ) ^= result_t( rhs.value( ) );
 	}
 
-	template<std::size_t Lhs, typename Rhs>
+	template<std::size_t Lhs, sint_impl::SignedIntegral Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator^( signed_integer<Lhs> lhs, Rhs rhs ) {
 		using lhs_t = sint_impl::signed_integer_type_t<Lhs>;
@@ -1405,7 +1406,7 @@ namespace daw::integers {
 		return result_t( lhs.m_private.value ) ^= result_t( rhs );
 	}
 
-	template<typename Lhs, std::size_t Rhs>
+	template<sint_impl::SignedIntegral Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 	operator^( Lhs lhs, signed_integer<Rhs> rhs ) {
 		using lhs_t = Lhs;
@@ -1701,6 +1702,17 @@ namespace std {
 		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
 		denorm_min( ) noexcept {
 			return daw::integers::signed_integer<Bits>{ };
+		}
+	};
+
+	/// std::hash support.  Hashes the same as the underlying value_type
+	template<std::size_t Bits>
+	struct hash<daw::integers::signed_integer<Bits>> {
+		[[nodiscard]] std::size_t
+		operator( )( daw::integers::signed_integer<Bits> v ) const noexcept {
+			return std::hash<
+			  typename daw::integers::signed_integer<Bits>::value_type>{ }(
+			  v.value( ) );
 		}
 	};
 } // namespace std
