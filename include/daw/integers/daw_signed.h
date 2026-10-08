@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "daw/integers/impl/daw_integer_bits.h"
 #include "daw/integers/impl/daw_integer_fwd.h"
 #include "daw/integers/impl/daw_signed_error_handling.h"
 #include "daw/integers/impl/daw_signed_impl.h"
@@ -32,6 +33,7 @@
 #include <exception>
 #include <functional>
 #include <limits>
+#include <optional>
 #include <type_traits>
 
 namespace daw::integers {
@@ -1091,6 +1093,238 @@ namespace daw::integers {
 		[[nodiscard]] constexpr signed_integer signum( ) const {
 			return signed_integer{ as<int>( m_private.value > value_type{ } ) -
 			                       as<int>( m_private.value < value_type{ } ) };
+		}
+
+		/// @brief Returns the number of ones in the two's complement
+		/// representation
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::uint32_t
+		count_ones( ) const noexcept {
+			return static_cast<std::uint32_t>(
+			  std::popcount( daw::as_unsigned( value( ) ) ) );
+		}
+
+		/// @brief Returns the number of zeros in the two's complement
+		/// representation
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::uint32_t
+		count_zeros( ) const noexcept {
+			return static_cast<std::uint32_t>(
+			  std::popcount( static_cast<std::make_unsigned_t<value_type>>(
+			    ~daw::as_unsigned( value( ) ) ) ) );
+		}
+
+		/// @brief Returns the number of leading ones in the two's complement
+		/// representation
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::uint32_t
+		count_leading_ones( ) const noexcept {
+			return static_cast<std::uint32_t>(
+			  std::countl_one( daw::as_unsigned( value( ) ) ) );
+		}
+
+		/// @brief Returns the number of trailing ones in the two's complement
+		/// representation
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::uint32_t
+		count_trailing_ones( ) const noexcept {
+			return static_cast<std::uint32_t>(
+			  std::countr_one( daw::as_unsigned( value( ) ) ) );
+		}
+
+		/// @brief Reverses the byte order
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer
+		swap_bytes( ) const noexcept {
+			return signed_integer(
+			  int_impl::swap_bytes( daw::as_unsigned( value( ) ) ), unchecked );
+		}
+
+		/// @brief Returns floor(log2(*this)).  Values that are not positive call
+		/// the overflow handler and 0 is returned
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::uint32_t ilog2( ) const {
+			if( DAW_UNLIKELY( not is_positive( ) ) ) {
+				DAW_UNLIKELY_BRANCH
+				on_integer_overflow( );
+				return 0;
+			}
+			return static_cast<std::uint32_t>(
+			  std::bit_width( daw::as_unsigned( value( ) ) ) - 1 );
+		}
+
+		/// @brief Returns the absolute value as an unsigned_integer.  This cannot
+		/// overflow, min( ).unsigned_abs( ) is max( ) + 1.  Requires
+		/// daw/integers/daw_unsigned.h, or include daw/daw_integer.h
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer<Bits>
+		unsigned_abs( ) const noexcept {
+			using unsigned_t = std::make_unsigned_t<value_type>;
+			auto const u = static_cast<unsigned_t>( value( ) );
+			return unsigned_integer<Bits>(
+			  static_cast<unsigned_t>( is_negative( ) ? 0U - u : u ),
+			  unsigned_integer<Bits>::unchecked );
+		}
+
+		/// @brief Returns |*this - rhs| as an unsigned_integer.  This cannot
+		/// overflow.  Requires daw/integers/daw_unsigned.h, or include
+		/// daw/daw_integer.h
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer<Bits>
+		abs_diff( signed_integer const &rhs ) const noexcept {
+			using unsigned_t = std::make_unsigned_t<value_type>;
+			auto const l = static_cast<unsigned_t>( value( ) );
+			auto const r = static_cast<unsigned_t>( rhs.value( ) );
+			return unsigned_integer<Bits>(
+			  static_cast<unsigned_t>( value( ) < rhs.value( ) ? r - l : l - r ),
+			  unsigned_integer<Bits>::unchecked );
+		}
+
+		// try_ operations return std::nullopt instead of reporting an error.  The
+		// error handlers are never called
+
+		/// @brief Converts other if it is in range
+		template<typename I>
+		requires daw::is_integral_v<I> //
+		[[nodiscard]] static constexpr std::optional<signed_integer>
+		try_from( I other ) noexcept {
+			if( not daw::in_range<value_type>( other ) ) {
+				return std::nullopt;
+			}
+			return signed_integer( other, unchecked );
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
+		try_add( signed_integer const &rhs ) const noexcept {
+			auto const r = add_overflowing( rhs );
+			if( r.overflowed ) {
+				return std::nullopt;
+			}
+			return signed_integer( r.value, unchecked );
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
+		try_sub( signed_integer const &rhs ) const noexcept {
+			auto const r = sub_overflowing( rhs );
+			if( r.overflowed ) {
+				return std::nullopt;
+			}
+			return signed_integer( r.value, unchecked );
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
+		try_mul( signed_integer const &rhs ) const noexcept {
+			auto const r = mul_overflowing( rhs );
+			if( r.overflowed ) {
+				return std::nullopt;
+			}
+			return signed_integer( r.value, unchecked );
+		}
+
+		/// @brief Division, std::nullopt when rhs is 0 or for min( ) / -1
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
+		try_div( signed_integer const &rhs ) const noexcept {
+			auto const r = div_overflowing( rhs );
+			if( r.error != SignedIntegerErrorType::None ) {
+				return std::nullopt;
+			}
+			return signed_integer( r.value, unchecked );
+		}
+
+		/// @brief Remainder, std::nullopt when rhs is 0 or for min( ) % -1
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
+		try_rem( signed_integer const &rhs ) const noexcept {
+			auto const r = rem_overflowing( rhs );
+			if( r.error != SignedIntegerErrorType::None ) {
+				return std::nullopt;
+			}
+			return signed_integer( r.value, unchecked );
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
+		try_div_euclid( signed_integer const &rhs ) const noexcept {
+			if( rhs.value( ) == 0 or
+			    ( value( ) == min( ) and rhs.value( ) == value_type{ -1 } ) ) {
+				return std::nullopt;
+			}
+			return div_euclid( rhs );
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
+		try_rem_euclid( signed_integer const &rhs ) const noexcept {
+			if( rhs.value( ) == 0 or
+			    ( value( ) == min( ) and rhs.value( ) == value_type{ -1 } ) ) {
+				return std::nullopt;
+			}
+			return rem_euclid( rhs );
+		}
+
+		/// @brief Negation, std::nullopt for min( )
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
+		try_negate( ) const noexcept {
+			if( value( ) == min( ) ) {
+				return std::nullopt;
+			}
+			return signed_integer( -value( ), unchecked );
+		}
+
+		/// @brief Absolute value, std::nullopt for min( )
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
+		try_abs( ) const noexcept {
+			if( is_negative( ) ) {
+				return try_negate( );
+			}
+			return *this;
+		}
+
+		/// @brief Shift left, std::nullopt when rhs is negative or not less than
+		/// the bit width.  Bits shifted out are discarded
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
+		try_shl( signed_integer const &rhs ) const noexcept {
+			if( rhs.value( ) < 0 or
+			    daw::cmp_greater_equal( rhs.value( ), daw::bit_count_v<value_type> ) ) {
+				return std::nullopt;
+			}
+			return signed_integer( value( ) << rhs.value( ), unchecked );
+		}
+
+		/// @brief Arithmetic shift right, std::nullopt when rhs is negative or
+		/// not less than the bit width
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
+		try_shr( signed_integer const &rhs ) const noexcept {
+			if( rhs.value( ) < 0 or
+			    daw::cmp_greater_equal( rhs.value( ), daw::bit_count_v<value_type> ) ) {
+				return std::nullopt;
+			}
+			return signed_integer( value( ) >> rhs.value( ), unchecked );
+		}
+
+		[[nodiscard]] constexpr std::optional<signed_integer>
+		try_pow( unsigned exp ) const noexcept {
+			bool overflowed = false;
+			auto const result = sint_impl::pow_impl(
+			  *this, exp, [&]( signed_integer const &lhs, signed_integer const &rhs ) {
+				  auto const r = lhs.mul_overflowing( rhs );
+				  overflowed |= r.overflowed;
+				  return signed_integer( r.value, unchecked );
+			  } );
+			if( overflowed ) {
+				return std::nullopt;
+			}
+			return result;
+		}
+
+		/// @brief floor(log2(*this)), std::nullopt when not positive
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<std::uint32_t>
+		try_ilog2( ) const noexcept {
+			if( not is_positive( ) ) {
+				return std::nullopt;
+			}
+			return ilog2( );
+		}
+
+		/// @brief Convert to an unsigned_integer of the same width, std::nullopt
+		/// when negative.  Requires daw/integers/daw_unsigned.h, or include
+		/// daw/daw_integer.h
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<
+		  unsigned_integer<Bits>>
+		try_as_unsigned( ) const noexcept {
+			if( is_negative( ) ) {
+				return std::nullopt;
+			}
+			return as_unsigned( );
 		}
 	};
 

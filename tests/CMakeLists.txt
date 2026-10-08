@@ -126,3 +126,11 @@ foreach( name hash format iostream )
   target_link_libraries( integer_${name}_test_bin PRIVATE daw_integer_test_lib )
   add_test( NAME integer_${name}_test_bin COMMAND integer_${name}_test_bin )
 endforeach( )
+
+add_executable( integer_try_test_bin src/daw_integers_try_test.cpp )
+target_link_libraries( integer_try_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME integer_try_test_bin COMMAND integer_try_test_bin )
+
+add_executable( integer_bits_test_bin src/daw_integers_bits_test.cpp )
+target_link_libraries( integer_bits_test_bin PRIVATE daw_integer_test_lib )
+add_test( NAME integer_bits_test_bin COMMAND integer_bits_test_bin )
