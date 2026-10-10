@@ -123,6 +123,11 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 
 		/// @brief Returns the minimum value of the underlying integer type
 		[[nodiscard]] static DAW_CONSTEVAL unsigned_integer min( ) noexcept {
+			return unsigned_integer( daw::min_value<value_type> );
+		}
+
+		/// @brief Returns the lowest value of the underlying integer type
+		[[nodiscard]] static DAW_CONSTEVAL unsigned_integer lowest( ) noexcept {
 			return unsigned_integer( daw::lowest_value<value_type> );
 		}
 
@@ -834,7 +839,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr signed_integer<Bits>
 		as_exact_signed( ) const {
 			using signed_t = std::make_signed_t<value_type>;
-			if( DAW_UNLIKELY( value( ) >  daw::max_value<signed_t> ) ) {
+			if( DAW_UNLIKELY( value( ) > daw::max_value<signed_t> ) ) {
 				DAW_UNLIKELY_BRANCH
 				on_integer_overflow( );
 			}

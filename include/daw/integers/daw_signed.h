@@ -123,6 +123,11 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 
 		/// @brief Returns the minimum value of the underlying integer type
 		[[nodiscard]] static DAW_CONSTEVAL signed_integer min( ) noexcept {
+			return signed_integer( daw::min_value<value_type> );
+		}
+
+		/// @brief Returns the lowest value of the underlying integer type
+		[[nodiscard]] static DAW_CONSTEVAL signed_integer lowest( ) noexcept {
 			return signed_integer( daw::lowest_value<value_type> );
 		}
 
