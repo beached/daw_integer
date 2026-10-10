@@ -12,3 +12,6 @@
 
 #include "daw/integers/daw_signed.h"
 #include "daw/integers/daw_unsigned.h"
+
+#include "daw/integers/daw_integer_format.h"
+#include "daw/integers/daw_integer_iostream.h"
