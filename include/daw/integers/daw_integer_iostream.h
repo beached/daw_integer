@@ -48,10 +48,10 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 		}
 		long long tmp = 0;
 		is >> tmp;
-		if( tmp < std::numeric_limits<value_type>::min( ) ) {
+		if( tmp < daw::lowest_value<value_type> ) {
 			v = signed_integer<Bits>::min( );
 			is.setstate( std::ios_base::failbit );
-		} else if( tmp > std::numeric_limits<value_type>::max( ) ) {
+		} else if( tmp > daw::max_value<value_type> ) {
 			v = signed_integer<Bits>::max( );
 			is.setstate( std::ios_base::failbit );
 		} else {
@@ -78,7 +78,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 		}
 		unsigned long long tmp = 0;
 		is >> tmp;
-		if( tmp > std::numeric_limits<value_type>::max( ) ) {
+		if( tmp > daw::max_value<value_type> ) {
 			v = unsigned_integer<Bits>::max( );
 			is.setstate( std::ios_base::failbit );
 		} else {

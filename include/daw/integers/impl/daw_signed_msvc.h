@@ -50,8 +50,8 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	template<typename SignedInteger>
 	constexpr bool wrapping_add( SignedInteger a, SignedInteger b,
 	                             SignedInteger &result ) {
-		static_assert( daw::is_integral_v<SignedInteger> and
-		                 daw::is_signed_v<SignedInteger> and
+		static_assert( std::is_integral_v<SignedInteger> and
+		                 std::is_signed_v<SignedInteger> and
 		                 sizeof( SignedInteger ) <= 8U,
 		               "Invalid signed integer" );
 		using unsigned_t = std::make_unsigned_t<SignedInteger>;
@@ -59,33 +59,30 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 		  static_cast<unsigned_t>( a ) + static_cast<unsigned_t>( b );
 		result = static_cast<SignedInteger>( unsigned_result );
 		return ( b > 0 and
-		         a > ( daw::numeric_limits<SignedInteger>::max( ) - b ) ) or
-		       ( b < 0 and
-		         a < ( daw::numeric_limits<SignedInteger>::min( ) - b ) );
+		         a > ( daw::max_value<SignedInteger> - b ) ) or
+		       ( b < 0 and a < ( lowest_value<SignedInteger> - b ) );
 	}
 
 	template<typename SignedInteger>
 	constexpr bool wrapping_sub( SignedInteger a, SignedInteger b,
 	                             SignedInteger &result ) {
-		static_assert( daw::is_integral_v<SignedInteger> and
-		                 daw::is_signed_v<SignedInteger> and
+		static_assert( std::is_integral_v<SignedInteger> and
+		                 std::is_signed_v<SignedInteger> and
 		                 sizeof( SignedInteger ) <= 8U,
 		               "Invalid signed integer" );
 		using unsigned_t = std::make_unsigned_t<SignedInteger>;
 		auto const unsigned_result =
 		  static_cast<unsigned_t>( a ) - static_cast<unsigned_t>( b );
 		result = static_cast<SignedInteger>( unsigned_result );
-		return ( b > 0 and
-		         a < ( daw::numeric_limits<SignedInteger>::min( ) + b ) ) or
-		       ( b < 0 and
-		         a > ( daw::numeric_limits<SignedInteger>::max( ) + b ) );
+		return ( b > 0 and a < ( lowest_value<SignedInteger> + b ) ) or
+		       ( b < 0 and a > ( daw::max_value<SignedInteger> + b ) );
 	}
 
 	template<typename SignedInteger>
 	constexpr bool wrapping_mul( SignedInteger a, SignedInteger b,
 	                             SignedInteger &result ) noexcept {
-		static_assert( daw::is_integral_v<SignedInteger> and
-		                 daw::is_signed_v<SignedInteger> and
+		static_assert( std::is_integral_v<SignedInteger> and
+		                 std::is_signed_v<SignedInteger> and
 		                 sizeof( SignedInteger ) <= 8U,
 		               "Invalid signed integer" );
 		using unsigned_t = std::make_unsigned_t<SignedInteger>;
@@ -98,21 +95,21 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 			return false;
 		}
 		if( a == SignedInteger{ -1 } ) {
-			return b == daw::numeric_limits<SignedInteger>::min( );
+			return b == lowest_value<SignedInteger>;
 		}
 		if( b == SignedInteger{ -1 } ) {
-			return a == daw::numeric_limits<SignedInteger>::min( );
+			return a == lowest_value<SignedInteger>;
 		}
 		if( a > 0 ) {
 			if( b > 0 ) {
-				return a > daw::numeric_limits<SignedInteger>::max( ) / b;
+				return a > daw::max_value<SignedInteger> / b;
 			}
-			return b < daw::numeric_limits<SignedInteger>::min( ) / a;
+			return b < lowest_value<SignedInteger> / a;
 		}
 		if( b > 0 ) {
-			return a < daw::numeric_limits<SignedInteger>::min( ) / b;
+			return a < lowest_value<SignedInteger> / b;
 		}
-		return a < daw::numeric_limits<SignedInteger>::max( ) / b;
+		return a < daw::max_value<SignedInteger> / b;
 	}
 
 	template<typename SignedInteger>
@@ -122,8 +119,8 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 			result = lhs;
 			[[unlikely]] return SignedIntegerErrorType::DivideByZero;
 		}
-		if( lhs == min_value<SignedInteger> and rhs == SignedInteger{ -1 } ) {
-			[[unlikely]] result = min_value<SignedInteger>;
+		if( lhs == lowest_value<SignedInteger> and rhs == SignedInteger{ -1 } ) {
+			[[unlikely]] result = lowest_value<SignedInteger>;
 			return SignedIntegerErrorType::Overflow;
 		}
 		result = lhs / rhs;
@@ -137,7 +134,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 			result = lhs;
 			[[unlikely]] return SignedIntegerErrorType::DivideByZero;
 		}
-		if( lhs == min_value<SignedInteger> and rhs == SignedInteger{ -1 } ) {
+		if( lhs == lowest_value<SignedInteger> and rhs == SignedInteger{ -1 } ) {
 			[[unlikely]] result = SignedInteger{ };
 			return SignedIntegerErrorType::Overflow;
 		}
@@ -181,7 +178,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 					on_signed_integer_div_by_zero( );
 					return lhs;
 				}
-				if( lhs == daw::numeric_limits<T>::min( ) and rhs == T{ -1 } ) {
+				if( lhs == daw::lowest_value<T> and rhs == T{ -1 } ) {
 					on_signed_integer_overflow( );
 					return T{ };
 				}

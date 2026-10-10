@@ -22,6 +22,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 #include <utility>
 
@@ -100,7 +101,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 			auto const r = static_cast<std::uint64_t>( a ) *
 			               static_cast<std::uint64_t>( b );
 			result = static_cast<T>( r );
-			return r > daw::numeric_limits<T>::max( );
+			return r >  daw::max_value<T>;
 		} else {
 #if defined( __GNUC__ ) or defined( __clang__ )
 			return __builtin_mul_overflow( a, b, &result );
@@ -210,7 +211,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 				DAW_LIKELY_BRANCH
 				return result;
 			}
-			return daw::numeric_limits<T>::max( );
+			return  daw::max_value<T>;
 		}
 	} sat_add{ };
 
@@ -235,7 +236,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 				DAW_LIKELY_BRANCH
 				return result;
 			}
-			return daw::numeric_limits<T>::max( );
+			return  daw::max_value<T>;
 		}
 	} sat_mul{ };
 

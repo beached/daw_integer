@@ -55,7 +55,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	wrapping_add( SignedInteger a, SignedInteger b, SignedInteger &result ) {
 		static_assert( sizeof( int ) >= sizeof( SignedInteger ) );
 		int const r2 = a + b;
-		bool const r = not daw::in_range<SignedInteger>( r2 );
+		bool const r = not std::in_range<SignedInteger>( r2 );
 		result = static_cast<SignedInteger>( r2 );
 		return r;
 	}
@@ -73,7 +73,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	wrapping_sub( SignedInteger a, SignedInteger b, SignedInteger &result ) {
 		static_assert( sizeof( int ) >= sizeof( SignedInteger ) );
 		int const r2 = a - b;
-		bool const r = not daw::in_range<SignedInteger>( r2 );
+		bool const r = not std::in_range<SignedInteger>( r2 );
 		result = static_cast<SignedInteger>( r2 );
 		return r;
 	}
@@ -91,7 +91,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	wrapping_mul( SignedInteger a, SignedInteger b, SignedInteger &result ) {
 		static_assert( sizeof( int ) >= sizeof( SignedInteger ) );
 		int const r2 = a * b;
-		bool const r = not daw::in_range<SignedInteger>( r2 );
+		bool const r = not std::in_range<SignedInteger>( r2 );
 		result = static_cast<SignedInteger>( r2 );
 		return r;
 	}
@@ -110,8 +110,8 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 			result = lhs;
 			[[unlikely]] return SignedIntegerErrorType::DivideByZero;
 		}
-		if( lhs == min_value<SignedInteger> and rhs == SignedInteger{ -1 } ) {
-			[[unlikely]] result = min_value<SignedInteger>;
+		if( lhs == lowest_value<SignedInteger> and rhs == SignedInteger{ -1 } ) {
+			[[unlikely]] result = lowest_value<SignedInteger>;
 			return SignedIntegerErrorType::Overflow;
 		}
 		result = static_cast<SignedInteger>( lhs / rhs );
@@ -125,7 +125,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 			result = lhs;
 			[[unlikely]] return SignedIntegerErrorType::DivideByZero;
 		}
-		if( lhs == min_value<SignedInteger> and rhs == SignedInteger{ -1 } ) {
+		if( lhs == lowest_value<SignedInteger> and rhs == SignedInteger{ -1 } ) {
 			[[unlikely]] result = SignedInteger{ };
 			return SignedIntegerErrorType::Overflow;
 		}
@@ -169,7 +169,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 					on_signed_integer_div_by_zero( );
 					return lhs;
 				}
-				if( lhs == daw::numeric_limits<T>::min( ) and rhs == T{ -1 } ) {
+				if( lhs ==  daw::lowest_value<T> and rhs == T{ -1 } ) {
 					on_signed_integer_overflow( );
 					return T{ };
 				}

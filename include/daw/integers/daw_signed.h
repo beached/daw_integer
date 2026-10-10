@@ -37,6 +37,7 @@
 #include <limits>
 #include <optional>
 #include <type_traits>
+#include <utility>
 
 namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	template<std::size_t /*Bits*/>
@@ -108,8 +109,8 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 	struct [[DAW_PREF_NAME( i8 ), DAW_PREF_NAME( i16 ), DAW_PREF_NAME( i32 ),
 	         DAW_PREF_NAME( i64 )]] signed_integer {
 		using SignedInteger = sint_impl::signed_integer_type<Bits>::type;
-		static_assert( daw::is_integral_v<SignedInteger> and
-		                 daw::is_signed_v<SignedInteger>,
+		static_assert( std::is_integral_v<SignedInteger> and
+		                 std::is_signed_v<SignedInteger>,
 		               "Only signed integer types are supported" );
 		using value_type = SignedInteger;
 		using reference = value_type &;
@@ -117,12 +118,12 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 
 		/// @brief Returns the maximum value of the underlying integer type
 		[[nodiscard]] static DAW_CONSTEVAL signed_integer max( ) noexcept {
-			return signed_integer( daw::numeric_limits<value_type>::max( ) );
+			return signed_integer( daw::max_value<value_type> );
 		}
 
 		/// @brief Returns the minimum value of the underlying integer type
 		[[nodiscard]] static DAW_CONSTEVAL signed_integer min( ) noexcept {
-			return signed_integer( daw::numeric_limits<value_type>::min( ) );
+			return signed_integer( daw::lowest_value<value_type> );
 		}
 
 		struct private_t {
@@ -234,7 +235,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 		  signed_integer<I> other )
 		  : m_private{ as<value_type>( other.value( ) ) } {
 #if DAW_DEFAULT_SIGNED_CHECKING == 0
-			if( not daw::in_range<value_type>( other.value( ) ) ) {
+			if( not std::in_range<value_type>( other.value( ) ) ) {
 				on_signed_integer_overflow( );
 			}
 #endif
@@ -965,30 +966,14 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 		count_leading_zeros( ) const noexcept {
-			if constexpr( Bits == 8 ) {
-				return daw::cxmath::count_leading_zeroes(
-				         as<std::uint32_t>( daw::cxmath::to_unsigned( value( ) ) ) ) -
-				       24;
-			} else if constexpr( Bits == 16 ) {
-				return daw::cxmath::count_leading_zeroes(
-				         as<std::uint32_t>( daw::cxmath::to_unsigned( value( ) ) ) ) -
-				       16;
-			} else {
-				return daw::cxmath::count_leading_zeroes(
-				  daw::cxmath::to_unsigned( value( ) ) );
-			}
+			return as<std::uint32_t>(
+			  std::countl_zero( daw::cxmath::to_unsigned( value( ) ) ) );
 		}
 
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr auto
 		count_trailing_zeros( ) const noexcept {
-			if constexpr( Bits == 8 or Bits == 16 ) {
-				return std::min( { as<std::uint32_t>( bit_count_v<value_type> ),
-				                   daw::cxmath::count_trailing_zeros( as<std::uint32_t>(
-				                     daw::cxmath::to_unsigned( value( ) ) ) ) } );
-			} else {
-				return daw::cxmath::count_trailing_zeros(
-				  daw::cxmath::to_unsigned( value( ) ) );
-			}
+			return as<std::uint32_t>(
+			  std::countr_zero( daw::cxmath::to_unsigned( value( ) ) ) );
 		}
 
 		/// @brief compute pow using current value as base and pow as exponent.
@@ -1276,7 +1261,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 		/// the bit width.  Bits shifted out are discarded
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
 		try_shl( signed_integer const &rhs ) const noexcept {
-			if( rhs.value( ) < 0 or daw::cmp_greater_equal(
+			if( rhs.value( ) < 0 or std::cmp_greater_equal(
 			                          rhs.value( ), daw::bit_count_v<value_type> ) ) {
 				return std::nullopt;
 			}
@@ -1287,7 +1272,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 		/// not less than the bit width
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
 		try_shr( signed_integer const &rhs ) const noexcept {
-			if( rhs.value( ) < 0 or daw::cmp_greater_equal(
+			if( rhs.value( ) < 0 or std::cmp_greater_equal(
 			                          rhs.value( ), daw::bit_count_v<value_type> ) ) {
 				return std::nullopt;
 			}
@@ -1658,7 +1643,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 	template<std::size_t Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr bool
 	operator==( signed_integer<Lhs> lhs, signed_integer<Rhs> rhs ) {
-		return daw::cmp_equal( lhs.value( ), rhs.value( ) );
+		return std::cmp_equal( lhs.value( ), rhs.value( ) );
 	}
 
 	template<std::size_t Lhs, typename Rhs>
@@ -1679,7 +1664,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 	template<std::size_t Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr bool
 	operator!=( signed_integer<Lhs> lhs, signed_integer<Rhs> rhs ) {
-		return daw::cmp_not_equal( lhs.value( ), rhs.value( ) );
+		return std::cmp_not_equal( lhs.value( ), rhs.value( ) );
 	}
 
 	template<std::size_t Lhs, typename Rhs>
@@ -1700,7 +1685,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 	template<std::size_t Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr bool
 	operator<( signed_integer<Lhs> lhs, signed_integer<Rhs> rhs ) {
-		return daw::cmp_less( lhs.value( ), rhs.value( ) );
+		return std::cmp_less( lhs.value( ), rhs.value( ) );
 	}
 
 	template<std::size_t Lhs, typename Rhs>
@@ -1721,7 +1706,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 	template<std::size_t Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr bool
 	operator<=( signed_integer<Lhs> lhs, signed_integer<Rhs> rhs ) {
-		return daw::cmp_less_equal( lhs.value( ), rhs.value( ) );
+		return std::cmp_less_equal( lhs.value( ), rhs.value( ) );
 	}
 
 	template<std::size_t Lhs, typename Rhs>
@@ -1742,7 +1727,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 	template<std::size_t Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr bool
 	operator>( signed_integer<Lhs> lhs, signed_integer<Rhs> rhs ) {
-		return daw::cmp_greater( lhs.value( ), rhs.value( ) );
+		return std::cmp_greater( lhs.value( ), rhs.value( ) );
 	}
 
 	template<std::size_t Lhs, typename Rhs>
@@ -1763,7 +1748,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 	template<std::size_t Lhs, std::size_t Rhs>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr bool
 	operator>=( signed_integer<Lhs> lhs, signed_integer<Rhs> rhs ) {
-		return daw::cmp_greater_equal( lhs.value( ), rhs.value( ) );
+		return std::cmp_greater_equal( lhs.value( ), rhs.value( ) );
 	}
 
 	template<std::size_t Lhs, typename Rhs>
@@ -1785,7 +1770,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::literals {
 	[[nodiscard]] DAW_CONSTEVAL signed_integer<8>
 	operator""_i8( unsigned long long v ) {
 		using int_t = std::int8_t;
-		if( not daw::in_range<int_t>( v ) ) {
+		if( not std::in_range<int_t>( v ) ) {
 			on_signed_integer_overflow( );
 		}
 		return signed_integer<8>( as<int_t>( v ) );
@@ -1794,7 +1779,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::literals {
 	[[nodiscard]] DAW_CONSTEVAL signed_integer<16>
 	operator""_i16( unsigned long long v ) {
 		using int_t = std::int16_t;
-		if( not daw::in_range<int_t>( v ) ) {
+		if( not std::in_range<int_t>( v ) ) {
 			on_signed_integer_overflow( );
 		}
 		return signed_integer<16>( as<int_t>( v ) );
@@ -1803,7 +1788,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::literals {
 	[[nodiscard]] DAW_CONSTEVAL signed_integer<32>
 	operator""_i32( unsigned long long v ) {
 		using int_t = std::int32_t;
-		if( not daw::in_range<int_t>( v ) ) {
+		if( not std::in_range<int_t>( v ) ) {
 			on_signed_integer_overflow( );
 		}
 		return signed_integer<32>( as<int_t>( v ) );
@@ -1812,7 +1797,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::literals {
 	[[nodiscard]] DAW_CONSTEVAL signed_integer<64>
 	operator""_i64( unsigned long long v ) {
 		using int_t = std::int64_t;
-		if( not daw::in_range<int_t>( v ) ) {
+		if( not std::in_range<int_t>( v ) ) {
 			on_signed_integer_overflow( );
 		}
 		return signed_integer<64>( as<int_t>( v ) );

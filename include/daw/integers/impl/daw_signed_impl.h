@@ -22,6 +22,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <limits>
 #include <type_traits>
 
 namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
@@ -141,9 +142,9 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 				return result;
 			}
 			if( rhs < 0 ) {
-				return daw::numeric_limits<T>::min( );
+				return  daw::lowest_value<T>;
 			}
-			return daw::numeric_limits<T>::max( );
+			return  daw::max_value<T>;
 		}
 	} sat_add{ };
 
@@ -157,9 +158,9 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 				return result;
 			}
 			if( rhs < 0 ) {
-				return daw::numeric_limits<T>::max( );
+				return  daw::max_value<T>;
 			}
-			return daw::numeric_limits<T>::min( );
+			return  daw::lowest_value<T>;
 		}
 	} sat_sub{ };
 
@@ -173,9 +174,9 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 				return result;
 			}
 			if( daw::signbit( lhs ) == daw::signbit( rhs ) ) {
-				return daw::numeric_limits<T>::max( );
+				return  daw::max_value<T>;
 			}
-			return daw::numeric_limits<T>::min( );
+			return  daw::lowest_value<T>;
 		}
 	} sat_mul{ };
 
@@ -251,10 +252,10 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs, T rhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
 			assert( rhs != 0 );
-			if( DAW_UNLIKELY( lhs == daw::numeric_limits<T>::min( ) and
+			if( DAW_UNLIKELY( lhs ==  daw::lowest_value<T> and
 			                  rhs == T{ -1 } ) ) {
 				DAW_UNLIKELY_BRANCH
-				return daw::numeric_limits<T>::max( );
+				return  daw::max_value<T>;
 			}
 			return sint_impl::debug_checked_div( lhs, rhs );
 		}
@@ -276,7 +277,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 		template<SizeFits<std::int64_t> T>
 		DAW_ATTRIB_INLINE DAW_CPP23_STATIC_CALL_OP constexpr T
 		operator( )( T lhs ) DAW_CPP23_STATIC_CALL_OP_CONST {
-			if( lhs == min_value<T> ) {
+			if( lhs == lowest_value<T> ) {
 				[[unlikely]] on_signed_integer_overflow( );
 				return lhs;
 			}
