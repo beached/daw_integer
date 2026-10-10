@@ -63,7 +63,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	};
 
 	template<std::size_t Bits>
-	using signed_integer_type_t = typename signed_integer_type<Bits>::type;
+	using signed_integer_type_t = signed_integer_type<Bits>::type;
 
 	template<typename T>
 	inline constexpr bool is_signed_integral_v =
@@ -73,10 +73,9 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	concept SignedIntegral = is_signed_integral_v<T>;
 
 	template<SignedIntegral Lhs, SignedIntegral Rhs>
-	using int_result_t =
-	  typename std::conditional<( sizeof( Lhs ) >= sizeof( Rhs ) ),
-	                            signed_integer<sizeof( Lhs ) * 8>,
-	                            signed_integer<sizeof( Rhs ) * 8>>::type;
+	using int_result_t = std::conditional_t<( sizeof( Lhs ) >= sizeof( Rhs ) ),
+	                                        signed_integer<sizeof( Lhs ) * 8>,
+	                                        signed_integer<sizeof( Rhs ) * 8>>;
 
 	template<std::size_t Bits>
 	DAW_ATTRIB_FLATINLINE constexpr signed_integer<Bits>
@@ -108,7 +107,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 	template<std::size_t Bits>
 	struct [[DAW_PREF_NAME( i8 ), DAW_PREF_NAME( i16 ), DAW_PREF_NAME( i32 ),
 	         DAW_PREF_NAME( i64 )]] signed_integer {
-		using SignedInteger = typename sint_impl::signed_integer_type<Bits>::type;
+		using SignedInteger = sint_impl::signed_integer_type<Bits>::type;
 		static_assert( daw::is_integral_v<SignedInteger> and
 		                 daw::is_signed_v<SignedInteger>,
 		               "Only signed integer types are supported" );
