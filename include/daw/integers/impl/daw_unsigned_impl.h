@@ -267,19 +267,6 @@ namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 		}
 	} checked_rem{ };
 
-	inline constexpr struct checked_neg_t {
-		explicit checked_neg_t( ) = default;
-
-		template<ValidUIntType T>
-		DAW_ATTRIB_INLINE constexpr T operator( )( T lhs ) const {
-			if( DAW_UNLIKELY( lhs != 0 ) ) {
-				DAW_UNLIKELY_BRANCH
-				on_integer_overflow( );
-			}
-			return static_cast<T>( 0U - promote( lhs ) );
-		}
-	} checked_neg{ };
-
 	inline constexpr struct checked_shl_t {
 		explicit checked_shl_t( ) = default;
 

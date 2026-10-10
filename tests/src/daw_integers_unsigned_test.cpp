@@ -126,9 +126,14 @@ namespace {
 		r &= Integer{ 7U }.div_saturated( two ) == 3U;
 		r &= Integer{ 7U }.rem_wrapped( two ) == 1U;
 
-		r &= Integer{ }.negate_wrapped( ) == 0U;
-		r &= one.negate_wrapped( ) == maximum;
-		r &= Integer{ }.negate_checked( ) == 0U;
+		r &= Integer{ }.negate_unchecked( ) == 0U;
+		r &= one.negate_unchecked( ) == maximum;
+		r &= maximum.negate_unchecked( ) == one;
+		r &= -Integer{ } == 0U;
+		r &= -one == maximum;
+		r &= -maximum == one;
+		r &= -Integer{ 5U } == value_t( -value_t{ 5 } );
+		r &= -( -Integer{ 5U } ) == 5U;
 
 		r &= Integer{ 3U }.pow( 3 ) == 27U;
 		r &= two.pow_wrapped( sizeof( value_t ) * 8U ) == 0U;
@@ -178,7 +183,6 @@ namespace {
 		check_overflow( [&] { return maximum.add_checked( one ); } );
 		check_overflow( [&] { return zero.sub_checked( one ); } );
 		check_overflow( [&] { return maximum.mul_checked( Integer{ 2U } ); } );
-		check_overflow( [&] { return one.negate_checked( ); } );
 		check_overflow( [&] { return one.shl_checked( Integer( bits ) ); } );
 		check_overflow( [&] { return one.shr_checked( Integer( bits ) ); } );
 		check_overflow( [&] { return one.shl_overflowing( -1 ); } );
@@ -213,8 +217,8 @@ namespace {
 		(void)zero.sub_saturated( one );
 		(void)maximum.mul_wrapped( maximum );
 		(void)maximum.mul_saturated( maximum );
-		(void)zero.negate_checked( );
-		(void)one.negate_wrapped( );
+		(void)one.negate_unchecked( );
+		(void)-one;
 		(void)Integer{ 2U }.pow_wrapped( bits );
 		(void)Integer{ 2U }.pow_saturated( bits );
 		(void)one.shl_overflowing( bits );

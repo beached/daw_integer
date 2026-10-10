@@ -150,7 +150,6 @@ namespace {
 			auto const x = u8( a );
 			daw_ensure( x.count_ones( ) ==
 			            static_cast<std::uint32_t>( std::popcount( a ) ) );
-			ensure_eq( x.try_negate( ), a == 0 ? ref<u8>( 0 ) : std::nullopt );
 			daw_ensure( x.try_as_signed( ).has_value( ) == ( a <= 127 ) );
 			if( a > 0 ) {
 				daw_ensure( x.ilog2( ) == ref_ilog2( a ) );

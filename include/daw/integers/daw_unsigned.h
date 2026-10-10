@@ -272,21 +272,21 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 			return m_private.value;
 		}
 
-		// @brief Returns the negated value.  Any non-zero value overflows and the
-		// overflow handler is called.
-		// @return The wrapped negation of the current value
+		/// @brief Negate the value modulo 2^Bits, the same as the builtin unary
+		/// minus on unsigned types.  Never checked
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
-		negate_checked( ) const {
-			return unsigned_integer( uint_impl::checked_neg( value( ) ) );
+		operator-( ) const noexcept {
+			return negate_unchecked( );
 		}
 
-		// @brief Negates the current unsigned_integer modulo 2^Bits
-		// @return A new unsigned_integer instance with the wrapped negated value
-		// of the current instance.
+		// @brief Negates the current unsigned_integer modulo 2^Bits, the same as
+		// the builtin unary minus on unsigned types.
+		// @return A new unsigned_integer instance with the negated value of the
+		// current instance.
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer
-		negate_wrapped( ) const {
-			return unsigned_integer(
-			  as<value_type>( 0U - uint_impl::promote( value( ) ) ), unchecked );
+		negate_unchecked( ) const noexcept {
+			return unsigned_integer( as<value_type>( value_type{ } - value( ) ),
+			                         unchecked );
 		}
 
 		/// @brief Computes the bitwise not and returns as an unsigned integer
@@ -1050,15 +1050,6 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<unsigned_integer>
 		try_rem_euclid( unsigned_integer const &rhs ) const noexcept {
 			return try_rem( rhs );
-		}
-
-		/// @brief Negation, std::nullopt for any value other than 0
-		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<unsigned_integer>
-		try_negate( ) const noexcept {
-			if( value( ) != 0 ) {
-				return std::nullopt;
-			}
-			return *this;
 		}
 
 		/// @brief Shift left, std::nullopt when rhs is not less than the bit

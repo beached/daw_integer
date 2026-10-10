@@ -147,10 +147,10 @@ auto [value, overflowed] = m.add_overflowing( one ); // value is the wrapped res
 | `rem_euclid` | ✓ | | ✓ | ✓ | | ✓ |
 | `pow( unsigned )` | ✓ | ✓ | ✓ | ✓ | | ✓ |
 | `shl`, `shr` | ✓ | | | ✓ | ✓ | ✓ |
-| `negate` | ✓ | ✓ | signed | signed | | ✓ |
+| `negate` | signed | signed | signed | ✓ | | signed |
 | `abs` (signed) | ✓ | ✓ | ✓ | | | ✓ |
 
-`shl_overflowing`/`shr_overflowing` take the shift count modulo the bit width.  `try_` operations never call the error handler.
+For unsigned types, unary `-` and `negate_unchecked` negate modulo 2^Bits, the same as unary `-` on builtin unsigned types.  `shl_overflowing`/`shr_overflowing` take the shift count modulo the bit width.  `try_` operations never call the error handler.
 
 ## Division and Remainder
 ###### [Top](#content)
@@ -248,7 +248,7 @@ The handlers are global and shared by the signed and unsigned types.  Registerin
 ## Checking Modes
 ###### [Top](#content)
 
-The behaviour of the default operators(`+`, `-`, `*`, `/`, `%`, `<<`, `>>`, `++`, `--`, unary `-`, and narrowing construction) is set by `DAW_DEFAULT_SIGNED_CHECKING` and `DAW_DEFAULT_UNSIGNED_CHECKING`
+The behaviour of the default operators(`+`, `-`, `*`, `/`, `%`, `<<`, `>>`, `++`, `--`, signed unary `-`, and narrowing construction) is set by `DAW_DEFAULT_SIGNED_CHECKING` and `DAW_DEFAULT_UNSIGNED_CHECKING`.  Unsigned unary `-` always wraps
 * `0` - Checked.  Errors call the handler, overflowing results wrap.  The default when `DEBUG` is defined or `NDEBUG` is not
 * `1` - Unchecked.  The default otherwise.  Add, subtract, and multiply wrap
 * `2` - Wrapped for add, subtract, and multiply, unchecked for the rest
