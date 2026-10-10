@@ -12,10 +12,12 @@
 
 #include <cstddef>
 
-namespace daw::integers::inline DAW_INTEGER_VER {
+namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	template<std::size_t /*Bits*/>
 	struct signed_integer;
+} // namespace daw::integers::inline DAW_INTEGER_VER::sint_impl
 
+namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 	template<std::size_t /*Bits*/>
 	struct unsigned_integer;
-} // namespace daw::integers::inline DAW_INTEGER_VER
+} // namespace daw::integers::inline DAW_INTEGER_VER::uint_impl

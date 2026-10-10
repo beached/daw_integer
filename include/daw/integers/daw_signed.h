@@ -98,11 +98,13 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 } // namespace daw::integers::inline DAW_INTEGER_VER::sint_impl
 
 namespace daw::integers::inline DAW_INTEGER_VER {
-	using i8 = signed_integer<8>;
-	using i16 = signed_integer<16>;
-	using i32 = signed_integer<32>;
-	using i64 = signed_integer<64>;
+	using i8 = sint_impl::signed_integer<8>;
+	using i16 = sint_impl::signed_integer<16>;
+	using i32 = sint_impl::signed_integer<32>;
+	using i64 = sint_impl::signed_integer<64>;
+} // namespace daw::integers::inline DAW_INTEGER_VER
 
+namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	/// @brief Signed Integer type with overflow checked/wrapping/saturated
 	/// operations
 	template<std::size_t Bits>
@@ -1064,17 +1066,18 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 		/// static_cast.  The two's complement bits are kept, so negative values
 		/// wrap.  Requires daw/integers/daw_unsigned.h, or include
 		/// daw/daw_integer.h
-		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer<Bits>
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr uint_impl::unsigned_integer<Bits>
 		as_unsigned( ) const noexcept {
-			return unsigned_integer<Bits>( daw::as_unsigned( value( ) ),
-			                               unsigned_integer<Bits>::unchecked );
+			return uint_impl::unsigned_integer<Bits>(
+			  daw::as_unsigned( value( ) ),
+			  uint_impl::unsigned_integer<Bits>::unchecked );
 		}
 
 		/// @brief Convert to an unsigned_integer of the same width.  Negative
 		/// values call the overflow handler and the two's complement bits are
 		/// returned.  Requires daw/integers/daw_unsigned.h, or include
 		/// daw/daw_integer.h
-		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer<Bits>
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr uint_impl::unsigned_integer<Bits>
 		as_exact_unsigned( ) const {
 			if( DAW_UNLIKELY( is_negative( ) ) ) {
 				DAW_UNLIKELY_BRANCH
@@ -1143,26 +1146,26 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 		/// @brief Returns the absolute value as an unsigned_integer.  This cannot
 		/// overflow, min( ).unsigned_abs( ) is max( ) + 1.  Requires
 		/// daw/integers/daw_unsigned.h, or include daw/daw_integer.h
-		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer<Bits>
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr uint_impl::unsigned_integer<Bits>
 		unsigned_abs( ) const noexcept {
 			using unsigned_t = std::make_unsigned_t<value_type>;
 			auto const u = static_cast<unsigned_t>( value( ) );
-			return unsigned_integer<Bits>(
+			return uint_impl::unsigned_integer<Bits>(
 			  static_cast<unsigned_t>( is_negative( ) ? 0U - u : u ),
-			  unsigned_integer<Bits>::unchecked );
+			  uint_impl::unsigned_integer<Bits>::unchecked );
 		}
 
 		/// @brief Returns |*this - rhs| as an unsigned_integer.  This cannot
 		/// overflow.  Requires daw/integers/daw_unsigned.h, or include
 		/// daw/daw_integer.h
-		[[nodiscard]] DAW_ATTRIB_INLINE constexpr unsigned_integer<Bits>
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr uint_impl::unsigned_integer<Bits>
 		abs_diff( signed_integer const &rhs ) const noexcept {
 			using unsigned_t = std::make_unsigned_t<value_type>;
 			auto const l = static_cast<unsigned_t>( value( ) );
 			auto const r = static_cast<unsigned_t>( rhs.value( ) );
-			return unsigned_integer<Bits>(
+			return uint_impl::unsigned_integer<Bits>(
 			  static_cast<unsigned_t>( value( ) < rhs.value( ) ? r - l : l - r ),
-			  unsigned_integer<Bits>::unchecked );
+			  uint_impl::unsigned_integer<Bits>::unchecked );
 		}
 
 		// try_ operations return std::nullopt instead of reporting an error.  The
@@ -1314,7 +1317,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 		/// when negative.  Requires daw/integers/daw_unsigned.h, or include
 		/// daw/daw_integer.h
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<
-		  unsigned_integer<Bits>>
+		  uint_impl::unsigned_integer<Bits>>
 		try_as_unsigned( ) const noexcept {
 			if( is_negative( ) ) {
 				return std::nullopt;
@@ -1769,43 +1772,39 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 	  -> decltype( daw::cmp_greater_equal( lhs, rhs.value( ) ) ) {
 		return daw::cmp_greater_equal( lhs, rhs.value( ) );
 	}
-} // namespace daw::integers::inline DAW_INTEGER_VER
+} // namespace daw::integers::inline DAW_INTEGER_VER::sint_impl
 
 namespace daw::integers::inline DAW_INTEGER_VER::literals {
-	[[nodiscard]] DAW_CONSTEVAL signed_integer<8>
-	operator""_i8( unsigned long long v ) {
+	[[nodiscard]] DAW_CONSTEVAL i8 operator""_i8( unsigned long long v ) {
 		using int_t = std::int8_t;
 		if( not std::in_range<int_t>( v ) ) {
 			on_signed_integer_overflow( );
 		}
-		return signed_integer<8>( as<int_t>( v ) );
+		return i8( as<int_t>( v ) );
 	}
 
-	[[nodiscard]] DAW_CONSTEVAL signed_integer<16>
-	operator""_i16( unsigned long long v ) {
+	[[nodiscard]] DAW_CONSTEVAL i16 operator""_i16( unsigned long long v ) {
 		using int_t = std::int16_t;
 		if( not std::in_range<int_t>( v ) ) {
 			on_signed_integer_overflow( );
 		}
-		return signed_integer<16>( as<int_t>( v ) );
+		return i16( as<int_t>( v ) );
 	}
 
-	[[nodiscard]] DAW_CONSTEVAL signed_integer<32>
-	operator""_i32( unsigned long long v ) {
+	[[nodiscard]] DAW_CONSTEVAL i32 operator""_i32( unsigned long long v ) {
 		using int_t = std::int32_t;
 		if( not std::in_range<int_t>( v ) ) {
 			on_signed_integer_overflow( );
 		}
-		return signed_integer<32>( as<int_t>( v ) );
+		return i32( as<int_t>( v ) );
 	}
 
-	[[nodiscard]] DAW_CONSTEVAL signed_integer<64>
-	operator""_i64( unsigned long long v ) {
+	[[nodiscard]] DAW_CONSTEVAL i64 operator""_i64( unsigned long long v ) {
 		using int_t = std::int64_t;
 		if( not std::in_range<int_t>( v ) ) {
 			on_signed_integer_overflow( );
 		}
-		return signed_integer<64>( as<int_t>( v ) );
+		return i64( as<int_t>( v ) );
 	}
 } // namespace daw::integers::inline DAW_INTEGER_VER::literals
 
@@ -1856,9 +1855,16 @@ namespace daw {
 	};
 } // namespace daw
 
+namespace daw::literals {
+	using daw::integers::literals::operator""_i8;
+	using daw::integers::literals::operator""_i16;
+	using daw::integers::literals::operator""_i32;
+	using daw::integers::literals::operator""_i64;
+} // namespace daw::literals
+
 namespace std {
 	template<std::size_t Bits>
-	struct numeric_limits<daw::integers::signed_integer<Bits>> {
+	struct numeric_limits<daw::integers::sint_impl::signed_integer<Bits>> {
 		static constexpr bool is_specialized = true;
 		static constexpr bool is_signed = true;
 		static constexpr bool is_integer = true;
@@ -1873,8 +1879,9 @@ namespace std {
 		  std::round_toward_zero;
 		static constexpr bool is_iec559 = false;
 		static constexpr bool is_bounded = true;
-		static constexpr bool is_modulo = numeric_limits<
-		  typename daw::integers::signed_integer<Bits>::value_type>::is_modulo;
+		static constexpr bool is_modulo =
+		  numeric_limits<typename daw::integers::sint_impl::signed_integer<
+		    Bits>::value_type>::is_modulo;
 		static constexpr int digits = Bits - 1;
 
 		static constexpr int digits10 = digits * 3 / 10;
@@ -1888,59 +1895,68 @@ namespace std {
 		static constexpr bool traps = true;
 		static constexpr bool tinyness_before = false;
 
-		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
+		[[nodiscard]] static constexpr daw::integers::sint_impl::signed_integer<
+		  Bits>
 		min( ) noexcept {
-			return daw::integers::signed_integer<Bits>::min( );
+			return daw::integers::sint_impl::signed_integer<Bits>::min( );
 		}
 
-		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
+		[[nodiscard]] static constexpr daw::integers::sint_impl::signed_integer<
+		  Bits>
 		max( ) noexcept {
-			return daw::integers::signed_integer<Bits>::max( );
+			return daw::integers::sint_impl::signed_integer<Bits>::max( );
 		}
 
-		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
+		[[nodiscard]] static constexpr daw::integers::sint_impl::signed_integer<
+		  Bits>
 		lowest( ) noexcept {
-			return daw::integers::signed_integer<Bits>::min( );
+			return daw::integers::sint_impl::signed_integer<Bits>::min( );
 		}
 
-		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
+		[[nodiscard]] static constexpr daw::integers::sint_impl::signed_integer<
+		  Bits>
 		epsilon( ) noexcept {
-			return daw::integers::signed_integer<Bits>{ };
+			return daw::integers::sint_impl::signed_integer<Bits>{ };
 		}
 
-		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
+		[[nodiscard]] static constexpr daw::integers::sint_impl::signed_integer<
+		  Bits>
 		round_error( ) noexcept {
-			return daw::integers::signed_integer<Bits>{ };
+			return daw::integers::sint_impl::signed_integer<Bits>{ };
 		}
 
-		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
+		[[nodiscard]] static constexpr daw::integers::sint_impl::signed_integer<
+		  Bits>
 		infinity( ) noexcept {
-			return daw::integers::signed_integer<Bits>{ };
+			return daw::integers::sint_impl::signed_integer<Bits>{ };
 		}
 
-		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
+		[[nodiscard]] static constexpr daw::integers::sint_impl::signed_integer<
+		  Bits>
 		quiet_NaN( ) noexcept {
-			return daw::integers::signed_integer<Bits>{ };
+			return daw::integers::sint_impl::signed_integer<Bits>{ };
 		}
 
-		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
+		[[nodiscard]] static constexpr daw::integers::sint_impl::signed_integer<
+		  Bits>
 		signaling_NaN( ) noexcept {
-			return daw::integers::signed_integer<Bits>{ };
+			return daw::integers::sint_impl::signed_integer<Bits>{ };
 		}
 
-		[[nodiscard]] static constexpr daw::integers::signed_integer<Bits>
+		[[nodiscard]] static constexpr daw::integers::sint_impl::signed_integer<
+		  Bits>
 		denorm_min( ) noexcept {
-			return daw::integers::signed_integer<Bits>{ };
+			return daw::integers::sint_impl::signed_integer<Bits>{ };
 		}
 	};
 
 	/// std::hash support.  Hashes the same as the underlying value_type
 	template<std::size_t Bits>
-	struct hash<daw::integers::signed_integer<Bits>> {
-		[[nodiscard]] std::size_t
-		operator( )( daw::integers::signed_integer<Bits> v ) const noexcept {
+	struct hash<daw::integers::sint_impl::signed_integer<Bits>> {
+		[[nodiscard]] std::size_t operator( )(
+		  daw::integers::sint_impl::signed_integer<Bits> v ) const noexcept {
 			return std::hash<
-			  typename daw::integers::signed_integer<Bits>::value_type>{ }(
+			  typename daw::integers::sint_impl::signed_integer<Bits>::value_type>{ }(
 			  v.value( ) );
 		}
 	};

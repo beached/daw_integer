@@ -22,19 +22,11 @@
 /// that is out of range sets failbit and stores the nearest limit, matching the
 /// builtin integer extractors.  Unsigned extraction also rejects a leading '-'
 /// instead of wrapping like the builtin extractors
-namespace daw::integers::inline DAW_INTEGER_VER {
+namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	template<typename CharT, typename Traits, std::size_t Bits>
 	std::basic_ostream<CharT, Traits> &
 	operator<<( std::basic_ostream<CharT, Traits> &os, signed_integer<Bits> v ) {
 		// Promote so that i8 is not written as a character
-		return os << +v.value( );
-	}
-
-	template<typename CharT, typename Traits, std::size_t Bits>
-	std::basic_ostream<CharT, Traits> &
-	operator<<( std::basic_ostream<CharT, Traits> &os,
-	            unsigned_integer<Bits> v ) {
-		// Promote so that u8 is not written as a character
 		return os << +v.value( );
 	}
 
@@ -58,6 +50,16 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 			v = signed_integer<Bits>( tmp, signed_integer<Bits>::unchecked );
 		}
 		return is;
+	}
+} // namespace daw::integers::inline DAW_INTEGER_VER::sint_impl
+
+namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
+	template<typename CharT, typename Traits, std::size_t Bits>
+	std::basic_ostream<CharT, Traits> &
+	operator<<( std::basic_ostream<CharT, Traits> &os,
+	            unsigned_integer<Bits> v ) {
+		// Promote so that u8 is not written as a character
+		return os << +v.value( );
 	}
 
 	template<typename CharT, typename Traits, std::size_t Bits>
@@ -86,4 +88,4 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 		}
 		return is;
 	}
-} // namespace daw::integers::inline DAW_INTEGER_VER
+} // namespace daw::integers::inline DAW_INTEGER_VER::uint_impl

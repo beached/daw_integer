@@ -36,7 +36,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::int_impl {
 	requires( std::is_unsigned_v<Unsigned> ) //
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr Unsigned
 	swap_bytes( Unsigned value ) noexcept {
-		return swap_bytes_impl(
-		  value, std::make_index_sequence<sizeof( Unsigned )>{ } );
+		return swap_bytes_impl( value,
+		                        std::make_index_sequence<sizeof( Unsigned )>{ } );
 	}
 } // namespace daw::integers::inline DAW_INTEGER_VER::int_impl

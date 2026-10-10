@@ -43,8 +43,9 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
-	DAW_ATTRIB_INLINE void register_signed_overflow_handler(
-	  integer_error_handler_t handler = nullptr, void *data = nullptr ) noexcept {
+	DAW_ATTRIB_INLINE void
+	register_signed_overflow_handler( integer_error_handler_t handler = nullptr,
+	                                  void *data = nullptr ) noexcept {
 		register_integer_overflow_handler( handler, data );
 	}
 

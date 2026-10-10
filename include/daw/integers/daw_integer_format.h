@@ -20,26 +20,29 @@
 /// "{:>8}".  i8 and u8 are formatted as numbers, not characters
 namespace std {
 	template<std::size_t Bits, typename CharT>
-	struct formatter<daw::integers::signed_integer<Bits>, CharT>
-	  : formatter<typename daw::integers::signed_integer<Bits>::value_type,
-	              CharT> {
+	struct formatter<daw::integers::sint_impl::signed_integer<Bits>, CharT>
+	  : formatter<
+	      typename daw::integers::sint_impl::signed_integer<Bits>::value_type,
+	      CharT> {
 		template<typename FormatContext>
-		auto format( daw::integers::signed_integer<Bits> v,
+		auto format( daw::integers::sint_impl::signed_integer<Bits> v,
 		             FormatContext &ctx ) const {
-			return formatter<typename daw::integers::signed_integer<Bits>::value_type,
-			                 CharT>::format( v.value( ), ctx );
+			return formatter<
+			  typename daw::integers::sint_impl::signed_integer<Bits>::value_type,
+			  CharT>::format( v.value( ), ctx );
 		}
 	};
 
 	template<std::size_t Bits, typename CharT>
-	struct formatter<daw::integers::unsigned_integer<Bits>, CharT>
-	  : formatter<typename daw::integers::unsigned_integer<Bits>::value_type,
-	              CharT> {
+	struct formatter<daw::integers::uint_impl::unsigned_integer<Bits>, CharT>
+	  : formatter<
+	      typename daw::integers::uint_impl::unsigned_integer<Bits>::value_type,
+	      CharT> {
 		template<typename FormatContext>
-		auto format( daw::integers::unsigned_integer<Bits> v,
+		auto format( daw::integers::uint_impl::unsigned_integer<Bits> v,
 		             FormatContext &ctx ) const {
 			return formatter<
-			  typename daw::integers::unsigned_integer<Bits>::value_type,
+			  typename daw::integers::uint_impl::unsigned_integer<Bits>::value_type,
 			  CharT>::format( v.value( ), ctx );
 		}
 	};

@@ -30,9 +30,10 @@ static_assert( sizeof( daw::u16 ) == 2 );
 static_assert( sizeof( daw::u32 ) == 4 );
 static_assert( sizeof( daw::u64 ) == 8 );
 
-static_assert( std::is_same_v<decltype( daw::integers::unsigned_integer(
-                                std::uint16_t{ 1 } ) ),
-                              daw::u16> );
+static_assert(
+  std::is_same_v<decltype( daw::integers::uint_impl::unsigned_integer(
+                   std::uint16_t{ 1 } ) ),
+                 daw::u16> );
 static_assert( std::is_same_v<decltype( 1_u8 + 1_u32 ), daw::u32> );
 static_assert( std::is_same_v<decltype( 1_u64 * 1_u16 ), daw::u64> );
 static_assert( std::is_same_v<decltype( 1_u16 + std::uint8_t{ 1 } ), daw::u16> );

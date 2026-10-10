@@ -169,7 +169,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 					on_signed_integer_div_by_zero( );
 					return lhs;
 				}
-				if( lhs ==  daw::lowest_value<T> and rhs == T{ -1 } ) {
+				if( lhs == daw::lowest_value<T> and rhs == T{ -1 } ) {
 					on_signed_integer_overflow( );
 					return T{ };
 				}

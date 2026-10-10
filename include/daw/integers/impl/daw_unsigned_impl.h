@@ -41,9 +41,9 @@
 
 namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 	template<typename T>
-	concept ValidUIntType = daw::is_integral_v<T> and daw::is_unsigned_v<T> and
-	                        not std::is_same_v<T, bool> and
-	                        sizeof( T ) <= sizeof( std::uint64_t );
+	concept ValidUIntType =
+	  daw::is_integral_v<T> and daw::is_unsigned_v<T> and
+	  not std::is_same_v<T, bool> and sizeof( T ) <= sizeof( std::uint64_t );
 
 	/// Unsigned types smaller than int promote to signed int, which can overflow
 	/// on multiplication.  Do arithmetic in at least unsigned int to keep it
@@ -98,10 +98,10 @@ namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 	template<ValidUIntType T>
 	DAW_ATTRIB_INLINE constexpr bool wrapping_mul( T a, T b, T &result ) {
 		if constexpr( sizeof( T ) < sizeof( std::uint64_t ) ) {
-			auto const r = static_cast<std::uint64_t>( a ) *
-			               static_cast<std::uint64_t>( b );
+			auto const r =
+			  static_cast<std::uint64_t>( a ) * static_cast<std::uint64_t>( b );
 			result = static_cast<T>( r );
-			return r >  daw::max_value<T>;
+			return r > daw::max_value<T>;
 		} else {
 #if defined( __GNUC__ ) or defined( __clang__ )
 			return __builtin_mul_overflow( a, b, &result );
@@ -113,8 +113,8 @@ namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 	}
 
 	template<ValidUIntType T>
-	DAW_ATTRIB_INLINE constexpr IntegerErrorType
-	wrapping_div( T lhs, T rhs, T &result ) {
+	DAW_ATTRIB_INLINE constexpr IntegerErrorType wrapping_div( T lhs, T rhs,
+	                                                           T &result ) {
 		if( rhs == 0 ) {
 			result = lhs;
 			[[unlikely]] return IntegerErrorType::DivideByZero;
@@ -124,8 +124,8 @@ namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 	}
 
 	template<ValidUIntType T>
-	DAW_ATTRIB_INLINE constexpr IntegerErrorType
-	wrapping_rem( T lhs, T rhs, T &result ) {
+	DAW_ATTRIB_INLINE constexpr IntegerErrorType wrapping_rem( T lhs, T rhs,
+	                                                           T &result ) {
 		if( rhs == 0 ) {
 			result = lhs;
 			[[unlikely]] return IntegerErrorType::DivideByZero;
@@ -211,7 +211,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 				DAW_LIKELY_BRANCH
 				return result;
 			}
-			return  daw::max_value<T>;
+			return daw::max_value<T>;
 		}
 	} sat_add{ };
 
@@ -236,7 +236,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 				DAW_LIKELY_BRANCH
 				return result;
 			}
-			return  daw::max_value<T>;
+			return daw::max_value<T>;
 		}
 	} sat_mul{ };
 

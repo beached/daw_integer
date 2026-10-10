@@ -78,8 +78,7 @@ namespace daw::integers::inline DAW_INTEGER_VER {
 	/// Caller is responsible for ensuring that this is called in a context that
 	/// protects against multiple threads accessing/writing at the same time
 	DAW_ATTRIB_NOINLINE inline void register_integer_div_by_zero_handler(
-	  integer_error_handler_t handler = nullptr,
-	  void *data = nullptr ) noexcept {
+	  integer_error_handler_t handler = nullptr, void *data = nullptr ) noexcept {
 		int_impl::get_integer_div_by_zero_handler( ).cb = handler;
 		int_impl::get_integer_div_by_zero_handler( ).data = data;
 	}

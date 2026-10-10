@@ -58,8 +58,7 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 		auto const unsigned_result =
 		  static_cast<unsigned_t>( a ) + static_cast<unsigned_t>( b );
 		result = static_cast<SignedInteger>( unsigned_result );
-		return ( b > 0 and
-		         a > ( daw::max_value<SignedInteger> - b ) ) or
+		return ( b > 0 and a > ( daw::max_value<SignedInteger> - b ) ) or
 		       ( b < 0 and a < ( lowest_value<SignedInteger> - b ) );
 	}
 
