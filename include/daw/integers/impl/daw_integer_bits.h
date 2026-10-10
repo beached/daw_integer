@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "daw/integers/impl/version.h"
+
 #include <daw/daw_attributes.h>
 
 #include <cstddef>
@@ -15,7 +17,7 @@
 #include <utility>
 
 /// Bit helpers shared by signed_integer and unsigned_integer
-namespace daw::integers::int_impl {
+namespace daw::integers::inline DAW_INTEGER_VER::int_impl {
 	template<typename Unsigned, std::size_t... Is>
 	[[nodiscard]] DAW_ATTRIB_INLINE constexpr Unsigned
 	swap_bytes_impl( Unsigned value, std::index_sequence<Is...> ) noexcept {
@@ -37,4 +39,4 @@ namespace daw::integers::int_impl {
 		return swap_bytes_impl(
 		  value, std::make_index_sequence<sizeof( Unsigned )>{ } );
 	}
-} // namespace daw::integers::int_impl
+} // namespace daw::integers::inline DAW_INTEGER_VER::int_impl

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "daw/integers/impl/version.h"
+
 #include "daw/integers/impl/daw_integer_error_handling.h"
 
 #include <daw/daw_arith_traits.h>
@@ -31,7 +33,7 @@
 #endif
 #endif
 
-namespace daw::integers {
+namespace daw::integers::inline DAW_INTEGER_VER {
 	// The signed names are kept for compatibility.  Error handling is shared
 	// with unsigned_integer, see daw_integer_error_handling.h
 	using SignedIntegerErrorType = IntegerErrorType;
@@ -80,4 +82,4 @@ namespace daw::integers {
 	DAW_ATTRIB_INLINE void on_signed_integer_div_by_zero( ) {
 		on_integer_div_by_zero( );
 	}
-} // namespace daw::integers
+} // namespace daw::integers::inline DAW_INTEGER_VER

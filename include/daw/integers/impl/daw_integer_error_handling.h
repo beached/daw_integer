@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "daw/integers/impl/version.h"
+
 #include <daw/daw_arith_traits.h>
 #include <daw/daw_attributes.h>
 #include <daw/daw_check_exceptions.h>
@@ -19,7 +21,7 @@
 #include <utility>
 
 /// Error handling shared by signed_integer and unsigned_integer
-namespace daw::integers {
+namespace daw::integers::inline DAW_INTEGER_VER {
 	enum class IntegerErrorType { Overflow, DivideByZero, None };
 	using integer_error_handler_t = void ( * )( void *, IntegerErrorType );
 
@@ -125,4 +127,4 @@ namespace daw::integers {
 		}
 		DAW_THROW_OR_TERMINATE_NA( integer_div_by_zero_exception );
 	}
-} // namespace daw::integers
+} // namespace daw::integers::inline DAW_INTEGER_VER

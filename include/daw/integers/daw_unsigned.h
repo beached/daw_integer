@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "daw/integers/impl/version.h"
+
 #include "daw/integers/impl/daw_integer_bits.h"
 #include "daw/integers/impl/daw_integer_error_handling.h"
 #include "daw/integers/impl/daw_integer_fwd.h"
@@ -34,66 +36,66 @@
 #include <optional>
 #include <type_traits>
 
-namespace daw::integers {
-	namespace uint_impl {
-		template<std::size_t /*Bits*/>
-		struct unsigned_integer_type;
+namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
+	template<std::size_t /*Bits*/>
+	struct unsigned_integer_type;
 
-		template<>
-		struct unsigned_integer_type<8> {
-			using type = std::uint8_t;
-		};
+	template<>
+	struct unsigned_integer_type<8> {
+		using type = std::uint8_t;
+	};
 
-		template<>
-		struct unsigned_integer_type<16> {
-			using type = std::uint16_t;
-		};
+	template<>
+	struct unsigned_integer_type<16> {
+		using type = std::uint16_t;
+	};
 
-		template<>
-		struct unsigned_integer_type<32> {
-			using type = std::uint32_t;
-		};
+	template<>
+	struct unsigned_integer_type<32> {
+		using type = std::uint32_t;
+	};
 
-		template<>
-		struct unsigned_integer_type<64> {
-			using type = std::uint64_t;
-		};
+	template<>
+	struct unsigned_integer_type<64> {
+		using type = std::uint64_t;
+	};
 
-		template<std::size_t Bits>
-		using unsigned_integer_type_t = typename unsigned_integer_type<Bits>::type;
+	template<std::size_t Bits>
+	using unsigned_integer_type_t = typename unsigned_integer_type<Bits>::type;
 
-		template<typename T>
-		inline constexpr bool is_unsigned_integral_v =
-		  daw::is_integral_v<T> and daw::is_unsigned_v<T> and
-		  not std::is_same_v<T, bool>;
+	template<typename T>
+	inline constexpr bool is_unsigned_integral_v =
+	  daw::is_integral_v<T> and daw::is_unsigned_v<T> and
+	  not std::is_same_v<T, bool>;
 
-		template<typename T>
-		concept UnsignedIntegral = is_unsigned_integral_v<T>;
+	template<typename T>
+	concept UnsignedIntegral = is_unsigned_integral_v<T>;
 
-		template<UnsignedIntegral Lhs, UnsignedIntegral Rhs>
-		using uint_result_t =
-		  typename std::conditional<( sizeof( Lhs ) >= sizeof( Rhs ) ),
-		                            unsigned_integer<sizeof( Lhs ) * 8>,
-		                            unsigned_integer<sizeof( Rhs ) * 8>>::type;
+	template<UnsignedIntegral Lhs, UnsignedIntegral Rhs>
+	using uint_result_t =
+	  typename std::conditional<( sizeof( Lhs ) >= sizeof( Rhs ) ),
+	                            unsigned_integer<sizeof( Lhs ) * 8>,
+	                            unsigned_integer<sizeof( Rhs ) * 8>>::type;
 
-		template<std::size_t Bits>
-		DAW_ATTRIB_FLATINLINE constexpr unsigned_integer<Bits>
-		pow_impl( unsigned_integer<Bits> base, unsigned exp, auto &&multiplier ) {
-			auto result = unsigned_integer<Bits>{ 1U };
+	template<std::size_t Bits>
+	DAW_ATTRIB_FLATINLINE constexpr unsigned_integer<Bits>
+	pow_impl( unsigned_integer<Bits> base, unsigned exp, auto &&multiplier ) {
+		auto result = unsigned_integer<Bits>{ 1U };
 
-			while( exp != 0 ) {
-				if( ( exp & 1 ) == 1 ) {
-					result = multiplier( result, base );
-				}
-				exp /= 2U;
-				if( exp != 0 ) {
-					base = multiplier( base, base );
-				}
+		while( exp != 0 ) {
+			if( ( exp & 1 ) == 1 ) {
+				result = multiplier( result, base );
 			}
-			return result;
+			exp /= 2U;
+			if( exp != 0 ) {
+				base = multiplier( base, base );
+			}
 		}
-	} // namespace uint_impl
+		return result;
+	}
+} // namespace daw::integers::inline DAW_INTEGER_VER::uint_impl
 
+namespace daw::integers::inline DAW_INTEGER_VER {
 	using u8 = unsigned_integer<8>;
 	using u16 = unsigned_integer<16>;
 	using u32 = unsigned_integer<32>;
@@ -1084,7 +1086,8 @@ namespace daw::integers {
 		try_pow( unsigned exp ) const noexcept {
 			bool overflowed = false;
 			auto const result = uint_impl::pow_impl(
-			  *this, exp,
+			  *this,
+			  exp,
 			  [&]( unsigned_integer const &lhs, unsigned_integer const &rhs ) {
 				  auto const r = lhs.mul_overflowing( rhs );
 				  overflowed |= r.overflowed;
@@ -1540,45 +1543,45 @@ namespace daw::integers {
 	  -> decltype( daw::cmp_greater_equal( lhs, rhs.value( ) ) ) {
 		return daw::cmp_greater_equal( lhs, rhs.value( ) );
 	}
+} // namespace daw::integers::inline DAW_INTEGER_VER
 
-	namespace literals {
-		[[nodiscard]] DAW_CONSTEVAL unsigned_integer<8>
-		operator""_u8( unsigned long long v ) {
-			using int_t = std::uint8_t;
-			if( not daw::in_range<int_t>( v ) ) {
-				on_integer_overflow( );
-			}
-			return unsigned_integer<8>( as<int_t>( v ) );
+namespace daw::integers::inline DAW_INTEGER_VER::literals {
+	[[nodiscard]] DAW_CONSTEVAL unsigned_integer<8>
+	operator""_u8( unsigned long long v ) {
+		using int_t = std::uint8_t;
+		if( not daw::in_range<int_t>( v ) ) {
+			on_integer_overflow( );
 		}
+		return unsigned_integer<8>( as<int_t>( v ) );
+	}
 
-		[[nodiscard]] DAW_CONSTEVAL unsigned_integer<16>
-		operator""_u16( unsigned long long v ) {
-			using int_t = std::uint16_t;
-			if( not daw::in_range<int_t>( v ) ) {
-				on_integer_overflow( );
-			}
-			return unsigned_integer<16>( as<int_t>( v ) );
+	[[nodiscard]] DAW_CONSTEVAL unsigned_integer<16>
+	operator""_u16( unsigned long long v ) {
+		using int_t = std::uint16_t;
+		if( not daw::in_range<int_t>( v ) ) {
+			on_integer_overflow( );
 		}
+		return unsigned_integer<16>( as<int_t>( v ) );
+	}
 
-		[[nodiscard]] DAW_CONSTEVAL unsigned_integer<32>
-		operator""_u32( unsigned long long v ) {
-			using int_t = std::uint32_t;
-			if( not daw::in_range<int_t>( v ) ) {
-				on_integer_overflow( );
-			}
-			return unsigned_integer<32>( as<int_t>( v ) );
+	[[nodiscard]] DAW_CONSTEVAL unsigned_integer<32>
+	operator""_u32( unsigned long long v ) {
+		using int_t = std::uint32_t;
+		if( not daw::in_range<int_t>( v ) ) {
+			on_integer_overflow( );
 		}
+		return unsigned_integer<32>( as<int_t>( v ) );
+	}
 
-		[[nodiscard]] DAW_CONSTEVAL unsigned_integer<64>
-		operator""_u64( unsigned long long v ) {
-			using int_t = std::uint64_t;
-			if( not daw::in_range<int_t>( v ) ) {
-				on_integer_overflow( );
-			}
-			return unsigned_integer<64>( as<int_t>( v ) );
+	[[nodiscard]] DAW_CONSTEVAL unsigned_integer<64>
+	operator""_u64( unsigned long long v ) {
+		using int_t = std::uint64_t;
+		if( not daw::in_range<int_t>( v ) ) {
+			on_integer_overflow( );
 		}
-	} // namespace literals
-} // namespace daw::integers
+		return unsigned_integer<64>( as<int_t>( v ) );
+	}
+} // namespace daw::integers::inline DAW_INTEGER_VER::literals
 
 namespace daw {
 	using daw::integers::u16;

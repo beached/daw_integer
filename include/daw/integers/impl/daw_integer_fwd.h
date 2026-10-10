@@ -8,12 +8,14 @@
 
 #pragma once
 
+#include "daw/integers/impl/version.h"
+
 #include <cstddef>
 
-namespace daw::integers {
+namespace daw::integers::inline DAW_INTEGER_VER {
 	template<std::size_t /*Bits*/>
 	struct signed_integer;
 
 	template<std::size_t /*Bits*/>
 	struct unsigned_integer;
-} // namespace daw::integers
+} // namespace daw::integers::inline DAW_INTEGER_VER

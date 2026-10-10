@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "daw/integers/impl/version.h"
+
 #include "daw/integers/impl/daw_integer_error_handling.h"
 
 #include <daw/daw_arith_traits.h>
@@ -36,7 +38,7 @@
 #endif
 #endif
 
-namespace daw::integers::uint_impl {
+namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 	template<typename T>
 	concept ValidUIntType = daw::is_integral_v<T> and daw::is_unsigned_v<T> and
 	                        not std::is_same_v<T, bool> and
@@ -393,4 +395,4 @@ namespace daw::integers::uint_impl {
 #if defined( DAW_HAS_CPP23_STATIC_CALL_OP ) and DAW_HAS_CLANG_VER_GTE( 17, 0 )
 #pragma clang diagnostic pop
 #endif
-} // namespace daw::integers::uint_impl
+} // namespace daw::integers::inline DAW_INTEGER_VER::uint_impl

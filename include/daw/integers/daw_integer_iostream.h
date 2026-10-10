@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "daw/integers/impl/version.h"
+
 #include "daw/daw_integer.h"
 
 #include <cstddef>
@@ -20,7 +22,7 @@
 /// that is out of range sets failbit and stores the nearest limit, matching the
 /// builtin integer extractors.  Unsigned extraction also rejects a leading '-'
 /// instead of wrapping like the builtin extractors
-namespace daw::integers {
+namespace daw::integers::inline DAW_INTEGER_VER {
 	template<typename CharT, typename Traits, std::size_t Bits>
 	std::basic_ostream<CharT, Traits> &
 	operator<<( std::basic_ostream<CharT, Traits> &os, signed_integer<Bits> v ) {
@@ -84,4 +86,4 @@ namespace daw::integers {
 		}
 		return is;
 	}
-} // namespace daw::integers
+} // namespace daw::integers::inline DAW_INTEGER_VER

@@ -8,8 +8,10 @@
 
 #pragma once
 
-#include "daw/integers/impl/version.h"
+#include <daw/ciso646.h>
 
-#include "daw/integers/daw_signed.h"
-#include "daw/integers/daw_unsigned.h"
-
+#if defined( DEBUG ) or not defined( NDEBUG )
+#define DAW_INTEGER_VER v0_0_1d
+#else
+#define DAW_INTEGER_VER v0_0_1
+#endif

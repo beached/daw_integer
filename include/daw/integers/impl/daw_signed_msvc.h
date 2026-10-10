@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "daw/integers/impl/version.h"
+
 #if defined( _MSC_VER ) and not defined( __clang__ )
 
 #include "daw/integers/impl/daw_signed_error_handling.h"
@@ -29,7 +31,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace daw::integers::sint_impl {
+namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	template<typename T>
 	concept ValidIntType = daw::is_integral_v<T> and daw::is_signed_v<T> and
 	                       sizeof( T ) <= sizeof( std::int64_t );
@@ -229,5 +231,5 @@ namespace daw::integers::sint_impl {
 			return static_cast<T>( lhs >> rhs );
 		}
 	} checked_shr{ };
-} // namespace daw::integers::sint_impl
+} // namespace daw::integers::inline DAW_INTEGER_VER::sint_impl
 #endif

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "daw/integers/impl/version.h"
+
 #include "daw/integers/impl/daw_integer_bits.h"
 #include "daw/integers/impl/daw_integer_fwd.h"
 #include "daw/integers/impl/daw_signed_error_handling.h"
@@ -36,66 +38,66 @@
 #include <optional>
 #include <type_traits>
 
-namespace daw::integers {
-	namespace sint_impl {
-		template<std::size_t /*Bits*/>
-		struct signed_integer_type;
+namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
+	template<std::size_t /*Bits*/>
+	struct signed_integer_type;
 
-		template<>
-		struct signed_integer_type<8> {
-			using type = std::int8_t;
-		};
+	template<>
+	struct signed_integer_type<8> {
+		using type = std::int8_t;
+	};
 
-		template<>
-		struct signed_integer_type<16> {
-			using type = std::int16_t;
-		};
+	template<>
+	struct signed_integer_type<16> {
+		using type = std::int16_t;
+	};
 
-		template<>
-		struct signed_integer_type<32> {
-			using type = std::int32_t;
-		};
+	template<>
+	struct signed_integer_type<32> {
+		using type = std::int32_t;
+	};
 
-		template<>
-		struct signed_integer_type<64> {
-			using type = std::int64_t;
-		};
+	template<>
+	struct signed_integer_type<64> {
+		using type = std::int64_t;
+	};
 
-		template<std::size_t Bits>
-		using signed_integer_type_t = typename signed_integer_type<Bits>::type;
+	template<std::size_t Bits>
+	using signed_integer_type_t = typename signed_integer_type<Bits>::type;
 
-		template<typename T>
-		inline constexpr bool is_signed_integral_v =
-		  daw::is_integral_v<T> and daw::is_signed_v<T>;
+	template<typename T>
+	inline constexpr bool is_signed_integral_v =
+	  daw::is_integral_v<T> and daw::is_signed_v<T>;
 
-		template<typename T>
-		concept SignedIntegral = is_signed_integral_v<T>;
+	template<typename T>
+	concept SignedIntegral = is_signed_integral_v<T>;
 
-		template<SignedIntegral Lhs, SignedIntegral Rhs>
-		using int_result_t =
-		  typename std::conditional<( sizeof( Lhs ) >= sizeof( Rhs ) ),
-		                            signed_integer<sizeof( Lhs ) * 8>,
-		                            signed_integer<sizeof( Rhs ) * 8>>::type;
+	template<SignedIntegral Lhs, SignedIntegral Rhs>
+	using int_result_t =
+	  typename std::conditional<( sizeof( Lhs ) >= sizeof( Rhs ) ),
+	                            signed_integer<sizeof( Lhs ) * 8>,
+	                            signed_integer<sizeof( Rhs ) * 8>>::type;
 
-		template<std::size_t Bits>
-		DAW_ATTRIB_FLATINLINE constexpr signed_integer<Bits>
-		pow_impl( signed_integer<Bits> base, unsigned exp, auto &&multiplier ) {
-			auto result = signed_integer<Bits>{ 1 }; // Initialize the result to 1
+	template<std::size_t Bits>
+	DAW_ATTRIB_FLATINLINE constexpr signed_integer<Bits>
+	pow_impl( signed_integer<Bits> base, unsigned exp, auto &&multiplier ) {
+		auto result = signed_integer<Bits>{ 1 }; // Initialize the result to 1
 
-			while( exp != 0 ) {        // Loop until the exponent becomes zero
-				if( ( exp & 1 ) == 1 ) { // If the least significant bit of exp is set
-					result = multiplier(
-					  result, base ); // Multiply the result by the current base
-				}
-				exp /= 2U;
-				if( exp != 0 ) {
-					base = multiplier( base, base );
-				}
+		while( exp != 0 ) {        // Loop until the exponent becomes zero
+			if( ( exp & 1 ) == 1 ) { // If the least significant bit of exp is set
+				result =
+				  multiplier( result, base ); // Multiply the result by the current base
 			}
-			return result; // Return the final result
+			exp /= 2U;
+			if( exp != 0 ) {
+				base = multiplier( base, base );
+			}
 		}
-	} // namespace sint_impl
+		return result; // Return the final result
+	}
+} // namespace daw::integers::inline DAW_INTEGER_VER::sint_impl
 
+namespace daw::integers::inline DAW_INTEGER_VER {
 	using i8 = signed_integer<8>;
 	using i16 = signed_integer<16>;
 	using i32 = signed_integer<32>;
@@ -631,6 +633,7 @@ namespace daw::integers {
 			case SignedIntegerErrorType::DivideByZero:
 				on_signed_integer_div_by_zero( );
 				return *this;
+			case SignedIntegerErrorType::None:
 			default:
 				[[likely]] break;
 			}
@@ -644,6 +647,7 @@ namespace daw::integers {
 			case SignedIntegerErrorType::DivideByZero:
 				on_signed_integer_div_by_zero( );
 				return *this;
+			case SignedIntegerErrorType::None:
 			default:
 				[[likely]] break;
 			}
@@ -1273,8 +1277,8 @@ namespace daw::integers {
 		/// the bit width.  Bits shifted out are discarded
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
 		try_shl( signed_integer const &rhs ) const noexcept {
-			if( rhs.value( ) < 0 or
-			    daw::cmp_greater_equal( rhs.value( ), daw::bit_count_v<value_type> ) ) {
+			if( rhs.value( ) < 0 or daw::cmp_greater_equal(
+			                          rhs.value( ), daw::bit_count_v<value_type> ) ) {
 				return std::nullopt;
 			}
 			return signed_integer( value( ) << rhs.value( ), unchecked );
@@ -1284,8 +1288,8 @@ namespace daw::integers {
 		/// not less than the bit width
 		[[nodiscard]] DAW_ATTRIB_INLINE constexpr std::optional<signed_integer>
 		try_shr( signed_integer const &rhs ) const noexcept {
-			if( rhs.value( ) < 0 or
-			    daw::cmp_greater_equal( rhs.value( ), daw::bit_count_v<value_type> ) ) {
+			if( rhs.value( ) < 0 or daw::cmp_greater_equal(
+			                          rhs.value( ), daw::bit_count_v<value_type> ) ) {
 				return std::nullopt;
 			}
 			return signed_integer( value( ) >> rhs.value( ), unchecked );
@@ -1295,7 +1299,9 @@ namespace daw::integers {
 		try_pow( unsigned exp ) const noexcept {
 			bool overflowed = false;
 			auto const result = sint_impl::pow_impl(
-			  *this, exp, [&]( signed_integer const &lhs, signed_integer const &rhs ) {
+			  *this,
+			  exp,
+			  [&]( signed_integer const &lhs, signed_integer const &rhs ) {
 				  auto const r = lhs.mul_overflowing( rhs );
 				  overflowed |= r.overflowed;
 				  return signed_integer( r.value, unchecked );
@@ -1774,45 +1780,45 @@ namespace daw::integers {
 	  -> decltype( daw::cmp_greater_equal( lhs, rhs.value( ) ) ) {
 		return daw::cmp_greater_equal( lhs, rhs.value( ) );
 	}
+} // namespace daw::integers::inline DAW_INTEGER_VER
 
-	namespace literals {
-		[[nodiscard]] DAW_CONSTEVAL signed_integer<8>
-		operator""_i8( unsigned long long v ) {
-			using int_t = std::int8_t;
-			if( not daw::in_range<int_t>( v ) ) {
-				on_signed_integer_overflow( );
-			}
-			return signed_integer<8>( as<int_t>( v ) );
+namespace daw::integers::inline DAW_INTEGER_VER::literals {
+	[[nodiscard]] DAW_CONSTEVAL signed_integer<8>
+	operator""_i8( unsigned long long v ) {
+		using int_t = std::int8_t;
+		if( not daw::in_range<int_t>( v ) ) {
+			on_signed_integer_overflow( );
 		}
+		return signed_integer<8>( as<int_t>( v ) );
+	}
 
-		[[nodiscard]] DAW_CONSTEVAL signed_integer<16>
-		operator""_i16( unsigned long long v ) {
-			using int_t = std::int16_t;
-			if( not daw::in_range<int_t>( v ) ) {
-				on_signed_integer_overflow( );
-			}
-			return signed_integer<16>( as<int_t>( v ) );
+	[[nodiscard]] DAW_CONSTEVAL signed_integer<16>
+	operator""_i16( unsigned long long v ) {
+		using int_t = std::int16_t;
+		if( not daw::in_range<int_t>( v ) ) {
+			on_signed_integer_overflow( );
 		}
+		return signed_integer<16>( as<int_t>( v ) );
+	}
 
-		[[nodiscard]] DAW_CONSTEVAL signed_integer<32>
-		operator""_i32( unsigned long long v ) {
-			using int_t = std::int32_t;
-			if( not daw::in_range<int_t>( v ) ) {
-				on_signed_integer_overflow( );
-			}
-			return signed_integer<32>( as<int_t>( v ) );
+	[[nodiscard]] DAW_CONSTEVAL signed_integer<32>
+	operator""_i32( unsigned long long v ) {
+		using int_t = std::int32_t;
+		if( not daw::in_range<int_t>( v ) ) {
+			on_signed_integer_overflow( );
 		}
+		return signed_integer<32>( as<int_t>( v ) );
+	}
 
-		[[nodiscard]] DAW_CONSTEVAL signed_integer<64>
-		operator""_i64( unsigned long long v ) {
-			using int_t = std::int64_t;
-			if( not daw::in_range<int_t>( v ) ) {
-				on_signed_integer_overflow( );
-			}
-			return signed_integer<64>( as<int_t>( v ) );
+	[[nodiscard]] DAW_CONSTEVAL signed_integer<64>
+	operator""_i64( unsigned long long v ) {
+		using int_t = std::int64_t;
+		if( not daw::in_range<int_t>( v ) ) {
+			on_signed_integer_overflow( );
 		}
-	} // namespace literals
-} // namespace daw::integers
+		return signed_integer<64>( as<int_t>( v ) );
+	}
+} // namespace daw::integers::inline DAW_INTEGER_VER::literals
 
 namespace daw {
 	using daw::integers::i16;

@@ -205,6 +205,7 @@ int main( ) try {
 		  case daw::integers::SignedIntegerErrorType::Overflow:
 			  has_overflow = true;
 			  break;
+		  case daw::integers::SignedIntegerErrorType::None:
 		  default:
 			  break;
 		  }

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "daw/integers/impl/version.h"
+
 #include "daw/integers/impl/daw_signed_clanggcc.h"
 #include "daw/integers/impl/daw_signed_msvc.h"
 
@@ -22,7 +24,7 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace daw::integers::sint_impl {
+namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 	template<typename T>
 	using next_wider_or_unsigned_t =
 	  std::conditional_t<sizeof( T ) >= 8, make_unsigned_t<T>,
@@ -321,4 +323,4 @@ namespace daw::integers::sint_impl {
 #if defined( DAW_HAS_CPP23_STATIC_CALL_OP ) and DAW_HAS_CLANG_VER_GTE( 17, 0 )
 #pragma clang diagnostic pop
 #endif
-} // namespace daw::integers::sint_impl
+} // namespace daw::integers::inline DAW_INTEGER_VER::sint_impl
