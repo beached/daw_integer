@@ -36,7 +36,8 @@ static_assert(
                  daw::u16> );
 static_assert( std::is_same_v<decltype( 1_u8 + 1_u32 ), daw::u32> );
 static_assert( std::is_same_v<decltype( 1_u64 * 1_u16 ), daw::u64> );
-static_assert( std::is_same_v<decltype( 1_u16 + std::uint8_t{ 1 } ), daw::u16> );
+static_assert(
+  std::is_same_v<decltype( 1_u16 + std::uint8_t{ 1 } ), daw::u16> );
 static_assert( std::is_same_v<decltype( 1_u16 + 1U ), daw::u32> );
 
 // Mixing signed builtins into arithmetic is not allowed, use 1U
@@ -62,6 +63,13 @@ namespace {
 		auto const maximum = Integer::max( );
 		auto const one = Integer{ 1U };
 		auto const two = Integer{ 2U };
+
+		{
+			auto u16_test = daw::u16{ };
+			auto uint16_value = std::uint16_t{42};
+			u16_test = uint16_value;
+			daw_ensure( u16_test == 42 );
+		}
 
 		bool r = true;
 		r &= Integer{ 3U } + Integer{ 4U } == 7U;
@@ -142,8 +150,8 @@ namespace {
 		r &= Integer{ 5U }.pow( 0 ) == 1U;
 
 		r &= one.shl_overflowing( sizeof( value_t ) * 8U + 1U ) == 2U;
-		r &= maximum.shr_overflowing( Integer( sizeof( value_t ) * 8U ) ) ==
-		     maximum;
+		r &=
+		  maximum.shr_overflowing( Integer( sizeof( value_t ) * 8U ) ) == maximum;
 		r &= one.shl_unchecked( Integer{ 2U } ) == 4U;
 		r &= Integer{ 8U }.shr_checked( Integer{ 2U } ) == 2U;
 
@@ -181,17 +189,39 @@ namespace {
 			daw_ensure( div_by_zero_count == before + 1 );
 		};
 
-		check_overflow( [&] { return maximum.add_checked( one ); } );
-		check_overflow( [&] { return zero.sub_checked( one ); } );
-		check_overflow( [&] { return maximum.mul_checked( Integer{ 2U } ); } );
-		check_overflow( [&] { return one.shl_checked( Integer( bits ) ); } );
-		check_overflow( [&] { return one.shr_checked( Integer( bits ) ); } );
-		check_overflow( [&] { return one.shl_overflowing( -1 ); } );
-		check_overflow( [&] { return Integer{ 2U }.pow_checked( bits ); } );
-		check_overflow( [&] { return maximum + one; } );
-		check_overflow( [&] { return zero - one; } );
-		check_overflow( [&] { return maximum * Integer{ 2U }; } );
-		check_overflow( [&] { return one << Integer( bits ); } );
+		check_overflow( [&] {
+			return maximum.add_checked( one );
+		} );
+		check_overflow( [&] {
+			return zero.sub_checked( one );
+		} );
+		check_overflow( [&] {
+			return maximum.mul_checked( Integer{ 2U } );
+		} );
+		check_overflow( [&] {
+			return one.shl_checked( Integer( bits ) );
+		} );
+		check_overflow( [&] {
+			return one.shr_checked( Integer( bits ) );
+		} );
+		check_overflow( [&] {
+			return one.shl_overflowing( -1 );
+		} );
+		check_overflow( [&] {
+			return Integer{ 2U }.pow_checked( bits );
+		} );
+		check_overflow( [&] {
+			return maximum + one;
+		} );
+		check_overflow( [&] {
+			return zero - one;
+		} );
+		check_overflow( [&] {
+			return maximum * Integer{ 2U };
+		} );
+		check_overflow( [&] {
+			return one << Integer( bits );
+		} );
 		check_overflow( [&] {
 			auto x = zero;
 			return --x;
@@ -200,15 +230,31 @@ namespace {
 			auto x = maximum;
 			return ++x;
 		} );
-		check_overflow( [] { return Integer( -1 ); } );
-		check_overflow( [] { return Integer::conversion_checked( -1 ); } );
+		check_overflow( [] {
+			return Integer( -1 );
+		} );
+		check_overflow( [] {
+			return Integer::conversion_checked( -1 );
+		} );
 
-		check_div_by_zero( [&] { return one / zero; } );
-		check_div_by_zero( [&] { return one % zero; } );
-		check_div_by_zero( [&] { return one.div_checked( zero ); } );
-		check_div_by_zero( [&] { return one.rem_checked( zero ); } );
-		check_div_by_zero( [&] { return one.div_euclid_checked( zero ); } );
-		check_div_by_zero( [&] { return one.rem_euclid_checked( zero ); } );
+		check_div_by_zero( [&] {
+			return one / zero;
+		} );
+		check_div_by_zero( [&] {
+			return one % zero;
+		} );
+		check_div_by_zero( [&] {
+			return one.div_checked( zero );
+		} );
+		check_div_by_zero( [&] {
+			return one.rem_checked( zero );
+		} );
+		check_div_by_zero( [&] {
+			return one.div_euclid_checked( zero );
+		} );
+		check_div_by_zero( [&] {
+			return one.rem_euclid_checked( zero );
+		} );
 
 		auto const before = overflow_count;
 		(void)maximum.add_wrapped( one );
@@ -248,8 +294,8 @@ namespace {
 	}
 
 	void test_bytes( ) {
-		unsigned char const bytes[] = { 0x01, 0x02, 0x03, 0x84,
-		                                0x05, 0x06, 0x07, 0x88 };
+		unsigned char const bytes[] = {
+		  0x01, 0x02, 0x03, 0x84, 0x05, 0x06, 0x07, 0x88 };
 		daw_ensure( daw::u8::from_bytes_le( bytes ) == 0x01U );
 		daw_ensure( daw::u16::from_bytes_le( bytes ) == 0x0201U );
 		daw_ensure( daw::u16::from_bytes_be( bytes ) == 0x0102U );

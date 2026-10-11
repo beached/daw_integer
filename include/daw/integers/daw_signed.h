@@ -142,7 +142,9 @@ namespace daw::integers::inline DAW_INTEGER_VER::sint_impl {
 		// Construct from an integer type and ensure value_type is large enough
 		template<typename I>
 		requires daw::is_integral_v<I> //
-		DAW_ATTRIB_INLINE constexpr explicit signed_integer( I v )
+		DAW_ATTRIB_INLINE constexpr explicit(
+		  not sint_impl::convertible_signed_int<value_type, I> )
+		  signed_integer( I v )
 		  : m_private{ as<value_type>( v ) } {
 			if constexpr( not sint_impl::convertible_signed_int<value_type, I> ) {
 				if( DAW_UNLIKELY( not daw::in_range<value_type>( v ) ) ) {

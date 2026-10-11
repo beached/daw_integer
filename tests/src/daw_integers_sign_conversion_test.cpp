@@ -10,12 +10,28 @@
 
 #include <daw/daw_ensure.h>
 
+#include <cstdint>
 #include <type_traits>
 
 static_assert( std::is_same_v<decltype( daw::i8{ }.as_unsigned( ) ), daw::u8> );
 static_assert( std::is_same_v<decltype( daw::i64{ }.as_unsigned( ) ), daw::u64> );
 static_assert( std::is_same_v<decltype( daw::u16{ }.as_signed( ) ), daw::i16> );
 static_assert( std::is_same_v<decltype( daw::u32{ }.as_signed( ) ), daw::i32> );
+
+// Builtin integers convert implicitly only when the sign matches and the value
+// always fits.  Sign changes must be explicit, even when the value fits
+static_assert( std::is_convertible_v<std::int8_t, daw::i16> );
+static_assert( std::is_convertible_v<std::uint8_t, daw::u16> );
+static_assert( not std::is_convertible_v<std::int8_t, daw::u16> );
+static_assert( not std::is_convertible_v<std::int32_t, daw::u64> );
+static_assert( not std::is_convertible_v<std::uint8_t, daw::i16> );
+static_assert( not std::is_convertible_v<std::uint32_t, daw::i64> );
+static_assert( not std::is_convertible_v<bool, daw::i8> );
+static_assert( not std::is_convertible_v<bool, daw::u8> );
+static_assert( std::is_constructible_v<daw::u16, std::int8_t> );
+static_assert( std::is_constructible_v<daw::i16, std::uint8_t> );
+static_assert( not std::is_assignable_v<daw::u32 &, std::int32_t> );
+static_assert( not std::is_assignable_v<daw::i64 &, std::uint32_t> );
 
 namespace {
 	template<typename Signed, typename Unsigned>

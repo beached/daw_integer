@@ -143,7 +143,9 @@ namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 		// values are out of range
 		template<typename I>
 		requires daw::is_integral_v<I> //
-		DAW_ATTRIB_INLINE constexpr explicit unsigned_integer( I v )
+		DAW_ATTRIB_INLINE constexpr explicit(
+		  not uint_impl::convertible_unsigned_int<value_type, I> )
+		  unsigned_integer( I v )
 		  : m_private{ as<value_type>( v ) } {
 			if constexpr( not uint_impl::convertible_unsigned_int<value_type, I> ) {
 				if( DAW_UNLIKELY( not daw::in_range<value_type>( v ) ) ) {

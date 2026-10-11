@@ -89,7 +89,7 @@ int main( ) {
 ## Constructing and Converting
 ###### [Top](#content)
 
-Construction is explicit.  Values from builtin integers are range checked, and widening between the library types is implicit.
+Construction from a builtin integer is implicit when every value of that type fits, e.g. `std::uint8_t` into `daw::u16`, and explicit and range checked otherwise.  Widening between the library types is implicit.
 ```c++
 using namespace daw::integers::literals;
 
