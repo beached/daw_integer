@@ -1857,12 +1857,12 @@ namespace daw {
 	};
 } // namespace daw
 
-namespace daw::literals {
+namespace daw {
 	using daw::integers::literals::operator""_i8;
 	using daw::integers::literals::operator""_i16;
 	using daw::integers::literals::operator""_i32;
 	using daw::integers::literals::operator""_i64;
-} // namespace daw::literals
+} // namespace daw
 
 namespace std {
 	template<std::size_t Bits>

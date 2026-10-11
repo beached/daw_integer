@@ -1612,12 +1612,12 @@ namespace daw {
 	};
 } // namespace daw
 
-namespace daw::literals {
+namespace daw {
 	using daw::integers::literals::operator""_u8;
 	using daw::integers::literals::operator""_u16;
 	using daw::integers::literals::operator""_u32;
 	using daw::integers::literals::operator""_u64;
-} // namespace daw::literals
+} // namespace daw
 
 namespace std {
 	template<std::size_t Bits>
