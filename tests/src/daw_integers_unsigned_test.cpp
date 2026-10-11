@@ -66,7 +66,7 @@ namespace {
 
 		{
 			auto u16_test = daw::u16{ };
-			auto uint16_value = std::uint16_t{42};
+			auto uint16_value = std::uint16_t{ 42 };
 			u16_test = uint16_value;
 			daw_ensure( u16_test == 42 );
 		}
@@ -337,6 +337,9 @@ static_assert( test_basic<daw::u8>( ) );
 static_assert( test_basic<daw::u16>( ) );
 static_assert( test_basic<daw::u32>( ) );
 static_assert( test_basic<daw::u64>( ) );
+
+enum class u8enum : std::uint8_t { A, B };
+static_assert( std::is_constructible_v<daw::u8, u8enum> );
 
 int main( ) {
 	auto overflow_handler = []( daw::integers::IntegerErrorType e ) {

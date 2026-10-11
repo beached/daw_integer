@@ -193,6 +193,9 @@ void test_byte_decoding( ) {
 	daw_ensure( Integer::from_bytes_be( big_endian ) == Integer( -1 ) );
 }
 
+enum class u8enum : std::int8_t { A, B };
+static_assert( std::is_constructible_v<daw::i8, u8enum> );
+
 int main( ) try {
 	bool has_overflow = false;
 	bool has_div_by_zero = false;

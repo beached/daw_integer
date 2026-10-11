@@ -33,6 +33,31 @@ static_assert( std::is_constructible_v<daw::i16, std::uint8_t> );
 static_assert( not std::is_assignable_v<daw::u32 &, std::int32_t> );
 static_assert( not std::is_assignable_v<daw::i64 &, std::uint32_t> );
 
+// Enums are explicitly constructible from their underlying value, never
+// implicitly convertible
+namespace {
+	enum class scoped_i8 : std::int8_t { neg = -1, pos = 42 };
+	enum class scoped_u64 : std::uint64_t { big = 0xFFFF'FFFF'FFFF'FFFFULL };
+	enum unscoped_u8 : std::uint8_t { unscoped_value = 200 };
+} // namespace
+
+static_assert( std::is_constructible_v<daw::i32, scoped_i8> );
+static_assert( std::is_constructible_v<daw::u32, scoped_i8> );
+static_assert( std::is_constructible_v<daw::u8, scoped_u64> );
+static_assert( std::is_constructible_v<daw::i16, unscoped_u8> );
+static_assert( not std::is_convertible_v<scoped_i8, daw::i32> );
+static_assert( not std::is_convertible_v<unscoped_u8, daw::u8> );
+static_assert( not std::is_assignable_v<daw::i32 &, scoped_i8> );
+static_assert( daw::i8( scoped_i8::neg ) == daw::i8( -1 ) );
+static_assert( daw::i64( scoped_i8::pos ) == daw::i64( 42 ) );
+static_assert( daw::u16( unscoped_value ) == daw::u16( 200U ) );
+static_assert( daw::i16( unscoped_value ) == daw::i16( 200 ) );
+static_assert( daw::u64( scoped_u64::big ) == daw::u64::max( ) );
+static_assert( daw::u8( scoped_u64::big, daw::u8::unchecked ) ==
+               daw::u8::max( ) );
+static_assert( daw::u8( scoped_i8::neg, daw::u8::unchecked ) ==
+               daw::u8::max( ) );
+
 namespace {
 	template<typename Signed, typename Unsigned>
 	constexpr bool test_casts( ) {
@@ -105,4 +130,15 @@ int main( ) {
 	test_exact_out_of_range<daw::i16, daw::u16>( error_count );
 	test_exact_out_of_range<daw::i32, daw::u32>( error_count );
 	test_exact_out_of_range<daw::i64, daw::u64>( error_count );
+
+	// Out of range enum values are reported like out of range integers
+	auto const before_enum = error_count;
+	(void)daw::u32( scoped_i8::neg );
+	daw_ensure( error_count == before_enum + 1 );
+	(void)daw::i8( unscoped_value );
+	daw_ensure( error_count == before_enum + 2 );
+	(void)daw::u8( scoped_u64::big );
+	daw_ensure( error_count == before_enum + 3 );
+	(void)daw::u8( scoped_i8::pos );
+	daw_ensure( error_count == before_enum + 3 );
 }

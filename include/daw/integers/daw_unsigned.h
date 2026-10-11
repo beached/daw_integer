@@ -164,6 +164,19 @@ namespace daw::integers::inline DAW_INTEGER_VER::uint_impl {
 		DAW_ATTRIB_INLINE constexpr explicit unsigned_integer( I v, unchecked_t )
 		  : m_private{ as<value_type>( v ) } {}
 
+		/// @brief Construct from an enum's underlying value.  Always explicit and
+		/// range checked when the underlying type does not always fit
+		template<typename E>
+		requires std::is_enum_v<E> //
+		DAW_ATTRIB_INLINE constexpr explicit unsigned_integer( E e )
+		  : unsigned_integer( static_cast<std::underlying_type_t<E>>( e ) ) {}
+
+		template<typename E>
+		requires std::is_enum_v<E> //
+		DAW_ATTRIB_INLINE constexpr explicit unsigned_integer( E e, unchecked_t )
+		  : m_private{ as<value_type>(
+		      static_cast<std::underlying_type_t<E>>( e ) ) } {}
+
 		/// @brief Creates an integer from a bytes object using little-endian byte
 		/// order.
 		/// @param ptr A byte array representing the integer in little-endian byte
